@@ -1,0 +1,497 @@
+import java.io.*;
+import java.util.*;
+import java.util.regex.*;
+
+public class CalculatorTest
+{
+	private static final Pattern OVERALL_PATTERN = Pattern.compile("^\\s*([0-9\\+\\-\\*\\/\\%\\^ \\t\\(\\)]+)\\s*$");
+	private static final String ERROR_MSG = "ERROR";
+
+	public static String replaceGroup(Matcher matcher, String expression, int groupToReplace, String replacement)
+	{
+	    StringBuilder repBuilder = new StringBuilder(expression);
+
+	    repBuilder.replace(matcher.start(groupToReplace), matcher.end(groupToReplace), replacement);
+
+	    return repBuilder.toString();
+	}
+
+/*
+	//debug
+	public static void main(String args[]) throws Exception
+	{
+		final File inpfolder = new File("testset/input");
+		final List<File> inpfileList = Arrays.asList(inpfolder.listFiles());
+
+		System.out.println(Runtime.version());
+
+		for(File inpfile: inpfileList)
+		{
+			Scanner inpReader = new Scanner(inpfile);
+			List<String> answerList = new ArrayList<>();
+
+			while (inpReader.hasNextLine())
+			{
+				String input = inpReader.nextLine();
+
+				if(input.equalsIgnoreCase("q"))
+					break;
+
+				answerList = command(answerList, input);
+			}
+
+			checkAnswer(answerList, inpfile);
+		}
+	}
+
+	//debug
+	public static List<String> command(List<String> answerList, String input)
+	{
+		Matcher expressionMatcher = OVERALL_PATTERN.matcher(input);
+
+    	if(!expressionMatcher.matches())
+    	{
+    		answerList.add(ERROR_MSG);
+
+    		return answerList;
+    	}
+    	else
+    	{
+    		try
+    		{
+    			List<String> postExpr = PostFixer.convert(expressionMatcher.group(1));
+
+    			PostCalculator postcalc = new PostCalculator();
+    			String answer = postcalc.calculate(postExpr);
+    			
+    			answerList.add(String.join(" ", postExpr));
+    			answerList.add(answer);
+
+    			return answerList;
+    		}
+    		catch(IllegalArgumentException e)
+    		{
+    			answerList.add(ERROR_MSG);
+
+    			return answerList;
+    		}
+    	}
+	}
+
+	//debug
+	public static void checkAnswer(List<String> resultList, File inpfile) throws Exception
+	{
+		File ansfile = new File("testset/output/" + inpfile.getName());
+
+		Scanner ansReader = new Scanner(ansfile);
+
+		System.out.println("---------------Checking testcase: " + inpfile.getName() + "---------------");
+
+		for(String result: resultList)
+		{
+			if(ansReader.hasNextLine())
+			{
+				String answer = ansReader.nextLine();
+
+				if(!result.equals(answer))
+				{
+					System.out.println("Error! Result = \"" + result + "\" but Answer = \"" + answer + "\"");
+				}
+			}
+			else System.out.println("Error! Result = \"" + result + "\" but no Answer");
+		}
+
+		System.out.println("---------------Finished testcase: " + inpfile.getName() + "---------------\n");
+	}
+*/	
+
+	public static void main(String args[]) throws Exception
+	{
+		//System.out.println(Runtime.version()); //debug
+
+		try(BufferedReader br = new BufferedReader(new InputStreamReader(System.in)))
+		{
+			while(true)
+			{
+				try
+				{
+					String input = br.readLine();
+
+					if(input.equalsIgnoreCase("q"))
+						break;
+
+					command(input);
+				}
+				catch(IllegalArgumentException e)
+				{
+					System.out.println(ERROR_MSG);
+				}
+			}
+		}
+	}
+
+	public static void command(String input) throws IllegalArgumentException
+	{
+		Matcher expressionMatcher = OVERALL_PATTERN.matcher(input);
+
+    	if(!expressionMatcher.matches())
+    	{
+    		throw new IllegalArgumentException();
+    	}
+    	else
+    	{
+    		List<String> postExpr = PostFixer.convert(expressionMatcher.group(1));
+    		String answer = PostCalculator.calculate(postExpr);
+    		
+    		System.out.println(String.join(" ", postExpr));
+    		System.out.println(answer);
+    	}
+	}
+
+	static class Processor
+	{
+		static final Pattern NUMR_PATTERN = Pattern.compile("[peos]+((\\d+)\\s*)");
+		static final Pattern LPAR_PATTERN = Pattern.compile("[peos]+((\\()\\s*)");
+		static final Pattern EXPN_PATTERN = Pattern.compile("[nd]((\\^)\\s*)");
+		static final Pattern OPER_PATTERN = Pattern.compile("[nd](([\\+\\-\\*\\/\\%])\\s*)");
+		static final Pattern RPAR_PATTERN = Pattern.compile(".*(p+?)[neods]*n+d*((\\))\\s*)");
+		static final Pattern SIGN_PATTERN = Pattern.compile("[pos]((\\-)\\s*)");
+		static final List<Pattern> PATTERNS_LIST = Arrays.asList(NUMR_PATTERN, LPAR_PATTERN, EXPN_PATTERN, OPER_PATTERN, RPAR_PATTERN, SIGN_PATTERN);
+
+		static final Pattern DONE_PATTERN = Pattern.compile("^[npoeds]+$");
+
+		static final List<List<String>> PRIORITY_LIST = Arrays.asList(Arrays.asList("^"), Arrays.asList("~"), Arrays.asList("*", "/", "%"), Arrays.asList("+", "-"));
+		static final List<String> BINOPR_LIST = Arrays.asList("^", "*", "/", "%", "+", "-");
+		static final String UNARY_OPERT = "~";
+
+		public Processor() {}
+	}
+
+	static class PostFixer extends Processor
+	{	
+		public PostFixer() {}
+
+		public static List<String> convert(String inExpr) throws IllegalArgumentException
+		{
+			List<String> result = new ArrayList<String>();
+			EvalHelper helper = new EvalHelper();
+
+			inExpr = "p" + inExpr + ")";
+
+			while(true)
+			{
+				List<String> tmpResult = helper.getResult(inExpr);
+				if(!tmpResult.isEmpty()) result.addAll(tmpResult);
+				
+				inExpr = helper.getNextTerm(inExpr);
+
+				//System.out.println(String.join(" ", result)); //debug
+				//System.out.println(inExpr); //debug
+				//System.out.println(); //debug
+
+				Matcher doneMatcher = DONE_PATTERN.matcher(inExpr);
+				if(doneMatcher.matches())
+				{
+					if(helper.finished()) break;
+					else throw new IllegalArgumentException();
+				}
+				else
+				{
+					if(helper.finished()) throw new IllegalArgumentException();
+				}
+			}
+
+			return result;
+		}
+
+		private static class EvalHelper extends PostFixer
+		{
+			private static Stack<String> optStack;
+			private List<Matcher> matcherList;
+
+			EvalHelper()
+			{
+				this.optStack = new Stack<>();
+				this.optStack.push("(");
+			}
+
+			boolean finished()
+			{
+				if(this.optStack.empty()) return true;
+				else return false;
+			}	
+
+			List<String> getResult(String inExpr) throws IllegalArgumentException
+			{
+				this.matcherList = new ArrayList<>();
+
+				//System.out.println(Arrays.toString(optStack.toArray())); //debug
+
+				for(int i=0; i<PATTERNS_LIST.size(); i++)
+				{
+					Matcher matcher = PATTERNS_LIST.get(i).matcher(inExpr);
+					this.matcherList.add(matcher);
+
+					if(matcher.find())
+					{
+						MatchTerms currTerm = new MatchTerms(matcher, i);
+
+						return makePostfix(currTerm, inExpr);
+					}
+				}
+
+				throw new IllegalArgumentException();
+			}
+
+			String getNextTerm(String inExpr)
+			{
+				final List<String> REPL_LIST = Arrays.asList("n", "p", "e", "o", "", "s");
+
+				int matchCtg = this.matcherList.size() - 1;
+				Matcher matcher = this.matcherList.get(matchCtg);
+
+				if (matchCtg == 4) inExpr = replaceGroup(matcher, inExpr, 2, "d");
+
+				return replaceGroup(matcher, inExpr, 1, REPL_LIST.get(matchCtg));
+			}
+
+			private List<String> makePostfix(MatchTerms currTerm, String inExpr) throws IllegalArgumentException
+			{
+				List<String> result = new ArrayList<>();
+
+				if(currTerm.isCatg(0)) //numeral
+				{
+					result.add(currTerm.getMatch(2));
+				}
+				else if(currTerm.isCatg(1)) //left parenthesis
+				{
+					this.optStack.push("(");
+				}
+				else if(currTerm.isCatg(2)) //exponential
+				{
+					this.optStack.push("^");
+				}
+				else if(currTerm.isCatg(3)) //binary operators
+				{
+					result.addAll(popUntil(currTerm, 0));
+					this.optStack.push(currTerm.getTerm());
+				}
+				else if(currTerm.isCatg(4)) //right parenthesis
+				{
+					result.addAll(popUntil("(", 1));
+					this.optStack.pop();
+				}
+				else if(currTerm.isCatg(5)) //sign
+				{
+					this.optStack.push("~");
+				}
+				else
+				{
+					throw new IllegalArgumentException();
+				}
+
+				return result;
+			}
+
+			private List<String> popUntil(Terms target, int mode) throws IllegalArgumentException
+			{
+				List<String> result = new ArrayList<>();
+
+				while(targetNotFound(target, mode))
+				{
+				    result.add(this.optStack.pop());
+				}
+
+				return result;
+			}
+
+			private List<String> popUntil(String targetStr, int mode) throws IllegalArgumentException
+			{
+				Terms term = new Terms(targetStr);
+				
+				return popUntil(term, mode);
+			}
+
+			private boolean targetNotFound(Terms target, int mode) throws IllegalArgumentException
+			{
+				if(mode == 0) //pop if the target operator has lower or equal priority
+				{
+					return target.isLowEq(this.optStack.peek());
+				}
+				else if(mode == 1) //pop if the target operator has not found
+				{
+					return !this.optStack.peek().equals(target.getTerm());
+				}
+
+				throw new IllegalArgumentException();
+			}
+		}
+	}
+
+	static class Terms extends Processor
+	{
+		String termStr;
+
+		public Terms()
+		{
+			this.termStr = "";
+		}
+
+		public Terms(String termStr)
+		{
+			this.termStr = termStr;
+		}
+
+		public String getTerm()
+		{
+			return this.termStr;
+		}
+
+		public boolean equals(String termStr)
+		{
+			return this.termStr.equals(termStr) ? true : false;
+		}
+
+		public boolean equals(Terms termToComp)
+		{
+			return this.equals(termToComp.getTerm()) ? true : false;
+		}
+
+		public boolean isLowEq(String termStr) throws IllegalArgumentException
+		{
+			if(this.equals(termStr)) return true;
+			else
+			{
+				for(List<String> currPriorityList: PRIORITY_LIST)
+				{
+					if(currPriorityList.contains(termStr)) return true;
+					else if(currPriorityList.contains(this.termStr)) return false;
+				}
+
+				throw new IllegalArgumentException();
+			}
+		}
+
+		public boolean isHighEq(String termStr) throws IllegalArgumentException
+		{
+			Terms term = new Terms(termStr);
+
+			return term.isLowEq(this.termStr);
+		}
+	}
+
+	static class MatchTerms extends Terms
+	{
+		private Matcher matcher;
+		private int matchCtg;
+
+		public MatchTerms(Matcher matcher, int matchCtg)
+		{
+			this.matcher = matcher;
+
+			this.matchCtg = matchCtg;
+			
+			if(this.matchCtg == 4) this.termStr = ")";
+			else this.termStr = matcher.group(2);
+		}
+
+		public Matcher getMatch()
+		{
+			return this.matcher;
+		}
+
+		public String getMatch(int groupNum)
+		{
+			return this.matcher.group(groupNum);
+		}
+
+		public int getCatg()
+		{
+			return this.matchCtg;
+		}
+
+		public boolean isCatg(int category)
+		{
+			return this.matchCtg == category ? true : false;
+		}
+	}
+
+	static class Operators extends Terms
+	{
+		public Operators(String termStr)
+		{
+			this.termStr = termStr;
+		}
+
+		public boolean equals(Operators optrToComp)
+		{
+			return this.equals(optrToComp.getTerm()) ? true : false;
+		}
+
+		public long operate(long num1, long num2) throws IllegalArgumentException
+		{
+			if(this.equals("^") && num1 >= 0) return (long) Math.pow(num2, num1);
+			else if(this.equals("*")) return num2 * num1;
+			else if(this.equals("/") && num1 != 0) return num2 / num1;
+			else if(this.equals("%") && num1 != 0) return num2 % num1;
+			else if(this.equals("+")) return num2 + num1;
+			else if(this.equals("-")) return num2 - num1;
+			else throw new IllegalArgumentException();
+		}
+	}
+
+	static class PostCalculator extends Processor
+	{
+		public PostCalculator() {}
+
+		public static String calculate(List<String> postExpr) throws IllegalArgumentException
+		{
+			Stack<Long> calcStack = new Stack<>();
+
+			for(String termStr: postExpr)
+			{
+				calcStack = calcCore(termStr, calcStack);
+
+				//System.out.println(termStr); //debug
+				//System.out.println(Arrays.toString(calcStack.toArray())); //debug
+			}
+			
+			try
+			{
+				return String.valueOf(calcStack.pop());
+			}
+			catch(Exception e)
+			{
+				throw new IllegalArgumentException();
+			}
+		}
+
+		private static Stack<Long> calcCore(String termStr, Stack<Long> calcStack) throws IllegalArgumentException
+		{
+			try
+			{
+				if(UNARY_OPERT.equals(termStr))
+				{
+					calcStack.push(-1 * calcStack.pop());
+				}
+				else if(BINOPR_LIST.contains(termStr))
+				{
+					Operators operator = new Operators(termStr);
+					
+					long tmp = operator.operate(calcStack.pop(), calcStack.pop());
+					calcStack.push(tmp);
+				}
+				else
+				{
+					calcStack.push(Long.parseLong(termStr));
+				}
+
+				return calcStack;
+			}
+			catch(Exception e)
+			{
+				throw new IllegalArgumentException();
+			}
+		}
+	}
+}
