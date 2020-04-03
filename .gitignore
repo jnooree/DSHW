@@ -2,8 +2,7 @@
 *.bk
 *.txt
 *.class
-./*/testset
-
+testset/
 *.tmp
 
 # Word temporary
