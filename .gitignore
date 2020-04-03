@@ -1,6 +1,5 @@
 .DS_Store
 *.bk
-*.txt
 *.class
 testset/
 *.tmp
