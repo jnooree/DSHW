@@ -9,95 +9,7 @@ public class CalculatorTest
 	private static final String ERROR_MSG = "ERROR";
 
 	public CalculatorTest() {}
-
-/*
-	//debug
-	public static void main(String args[]) throws Exception
-	{
-		final File inpfolder = new File("testset/input");
-		final List<File> inpfileList = Arrays.asList(inpfolder.listFiles());
-
-		System.out.println(Runtime.version());
-
-		for(File inpfile: inpfileList)
-		{
-			Scanner inpReader = new Scanner(inpfile);
-			List<String> answerList = new ArrayList<>();
-
-			while (inpReader.hasNextLine())
-			{
-				String input = inpReader.nextLine();
-
-				if(input.equalsIgnoreCase("q"))
-					break;
-
-				answerList = command(answerList, input);
-			}
-
-			checkAnswer(answerList, inpfile);
-		}
-	}
-
-	//debug
-	public static List<String> command(List<String> answerList, String input)
-	{
-		Matcher expressionMatcher = OVERALL_PATTERN.matcher(input);
-
-    	if(!expressionMatcher.matches())
-    	{
-    		answerList.add(ERROR_MSG);
-
-    		return answerList;
-    	}
-    	else
-    	{
-    		try
-    		{
-    			List<String> postExpr = PostFixer.convert(expressionMatcher.group(1));
-
-    			PostCalculator postcalc = new PostCalculator();
-    			String answer = postcalc.calculate(postExpr);
-    			
-    			answerList.add(String.join(" ", postExpr));
-    			answerList.add(answer);
-
-    			return answerList;
-    		}
-    		catch(IllegalArgumentException e)
-    		{
-    			answerList.add(ERROR_MSG);
-
-    			return answerList;
-    		}
-    	}
-	}
-
-	//debug
-	public static void checkAnswer(List<String> resultList, File inpfile) throws Exception
-	{
-		File ansfile = new File("testset/output/" + inpfile.getName());
-
-		Scanner ansReader = new Scanner(ansfile);
-
-		System.out.println("---------------Checking testcase: " + inpfile.getName() + "---------------");
-
-		for(String result: resultList)
-		{
-			if(ansReader.hasNextLine())
-			{
-				String answer = ansReader.nextLine();
-
-				if(!result.equals(answer))
-				{
-					System.out.println("Error! Result = \"" + result + "\" but Answer = \"" + answer + "\"");
-				}
-			}
-			else System.out.println("Error! Result = \"" + result + "\" but no Answer");
-		}
-
-		System.out.println("---------------Finished testcase: " + inpfile.getName() + "---------------\n");
-	}
-*/	
+	
 
 	public static void main(String args[]) throws Exception
 	{
@@ -135,7 +47,9 @@ public class CalculatorTest
     	else
     	{
     		List<String> postExpr = PostFixer.convert(expressionMatcher.group(1));
-    		String answer = PostCalculator.calculate(postExpr);
+
+    		PostCalculator postcalc = new PostCalculator();
+    		String answer = postcalc.calculate(postExpr);
     		
     		System.out.println(String.join(" ", postExpr));
     		System.out.println(answer);
@@ -508,16 +422,19 @@ class Operators extends Terms
 
 class PostCalculator
 {
-	public PostCalculator() {}
+	private Stack<Long> calcStack;
 
-	public static String calculate(List<String> postExpr)
+	public PostCalculator()
+	{
+		calcStack = new Stack<>();
+	}
+
+	public String calculate(List<String> postExpr)
 			throws IllegalArgumentException
 	{
-		Stack<Long> calcStack = new Stack<>();
-
 		for(String termStr: postExpr)
 		{
-			calcStack = calcCore(termStr, calcStack);
+			calcCore(termStr);
 
 			//System.out.println(termStr); //debug
 			//System.out.println(Arrays.toString(calcStack.toArray())); //debug
@@ -533,8 +450,7 @@ class PostCalculator
 		}
 	}
 
-	private static Stack<Long> calcCore(String termStr,
-			Stack<Long> calcStack) throws IllegalArgumentException
+	private void calcCore(String termStr) throws IllegalArgumentException
 	{
 		try
 		{
@@ -555,8 +471,6 @@ class PostCalculator
 			{
 				calcStack.push(Long.parseLong(termStr));
 			}
-
-			return calcStack;
 		}
 		catch(Exception e)
 		{
