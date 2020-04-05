@@ -2,6 +2,7 @@
 *.bk
 *.class
 testset/
+my_output/
 *.tmp
 
 # Word temporary
