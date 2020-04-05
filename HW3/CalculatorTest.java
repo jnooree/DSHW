@@ -10,95 +10,6 @@ public class CalculatorTest
 
 	public CalculatorTest() {}
 
-/*
-	//debug
-	public static void main(String args[]) throws Exception
-	{
-		final File inpfolder = new File("testset/input");
-		final List<File> inpfileList = Arrays.asList(inpfolder.listFiles());
-
-		System.out.println(Runtime.version());
-
-		for(File inpfile: inpfileList)
-		{
-			Scanner inpReader = new Scanner(inpfile);
-			List<String> answerList = new ArrayList<>();
-
-			while (inpReader.hasNextLine())
-			{
-				String input = inpReader.nextLine();
-
-				if(input.equalsIgnoreCase("q"))
-					break;
-
-				answerList = command(answerList, input);
-			}
-
-			checkAnswer(answerList, inpfile);
-		}
-	}
-
-	//debug
-	public static List<String> command(List<String> answerList, String input)
-	{
-		Matcher expressionMatcher = OVERALL_PATTERN.matcher(input);
-
-    	if(!expressionMatcher.matches())
-    	{
-    		answerList.add(ERROR_MSG);
-
-    		return answerList;
-    	}
-    	else
-    	{
-    		try
-    		{
-    			List<String> postExpr = PostFixer.convert(expressionMatcher.group(1));
-
-    			PostCalculator postcalc = new PostCalculator();
-    			String answer = postcalc.calculate(postExpr);
-    			
-    			answerList.add(String.join(" ", postExpr));
-    			answerList.add(answer);
-
-    			return answerList;
-    		}
-    		catch(IllegalArgumentException e)
-    		{
-    			answerList.add(ERROR_MSG);
-
-    			return answerList;
-    		}
-    	}
-	}
-
-	//debug
-	public static void checkAnswer(List<String> resultList, File inpfile) throws Exception
-	{
-		File ansfile = new File("testset/output/" + inpfile.getName());
-
-		Scanner ansReader = new Scanner(ansfile);
-
-		System.out.println("---------------Checking testcase: " + inpfile.getName() + "---------------");
-
-		for(String result: resultList)
-		{
-			if(ansReader.hasNextLine())
-			{
-				String answer = ansReader.nextLine();
-
-				if(!result.equals(answer))
-				{
-					System.out.println("Error! Result = \"" + result + "\" but Answer = \"" + answer + "\"");
-				}
-			}
-			else System.out.println("Error! Result = \"" + result + "\" but no Answer");
-		}
-
-		System.out.println("---------------Finished testcase: " + inpfile.getName() + "---------------\n");
-	}
-*/	
-
 	public static void main(String args[]) throws Exception
 	{
 		//System.out.println(Runtime.version()); //debug
@@ -394,6 +305,63 @@ class PostFixer
 	}
 }
 
+class PostCalculator
+{
+	public PostCalculator() {}
+
+	public static String calculate(List<String> postExpr) throws IllegalArgumentException
+	{
+		Stack<Long> calcStack = new Stack<>();
+
+		for(String termStr: postExpr)
+		{
+			calcStack = calcCore(termStr, calcStack);
+
+			//System.out.println(termStr); //debug
+			//System.out.println(Arrays.toString(calcStack.toArray())); //debug
+		}
+		
+		try
+		{
+			return String.valueOf(calcStack.pop());
+		}
+		catch(Exception e)
+		{
+			throw new IllegalArgumentException();
+		}
+	}
+
+	private static Stack<Long> calcCore(String termStr, Stack<Long> calcStack) throws IllegalArgumentException
+	{
+		try
+		{
+			Processor prcs = new Processor();
+
+			if(prcs.isUnaryOpr(termStr))
+			{
+				calcStack.push(-1 * calcStack.pop());
+			}
+			else if(prcs.isBinOpr(termStr))
+			{
+				Operators operator = new Operators(termStr);
+				
+				long tmp = operator.operate(calcStack.pop(), calcStack.pop());
+				calcStack.push(tmp);
+			}
+			else
+			{
+				calcStack.push(Long.parseLong(termStr));
+			}
+
+			return calcStack;
+		}
+		catch(Exception e)
+		{
+			throw new IllegalArgumentException();
+		}
+	}
+}
+
 class Terms
 {
 	private String termStr;
@@ -503,64 +471,5 @@ class Operators extends Terms
 		else if(this.equals("+")) return num2 + num1;
 		else if(this.equals("-")) return num2 - num1;
 		else throw new IllegalArgumentException();
-	}
-}
-
-class PostCalculator
-{
-	public PostCalculator() {}
-
-	public static String calculate(List<String> postExpr)
-			throws IllegalArgumentException
-	{
-		Stack<Long> calcStack = new Stack<>();
-
-		for(String termStr: postExpr)
-		{
-			calcStack = calcCore(termStr, calcStack);
-
-			//System.out.println(termStr); //debug
-			//System.out.println(Arrays.toString(calcStack.toArray())); //debug
-		}
-		
-		try
-		{
-			return String.valueOf(calcStack.pop());
-		}
-		catch(Exception e)
-		{
-			throw new IllegalArgumentException();
-		}
-	}
-
-	private static Stack<Long> calcCore(String termStr,
-			Stack<Long> calcStack) throws IllegalArgumentException
-	{
-		try
-		{
-			Processor prcs = new Processor();
-
-			if(prcs.isUnaryOpr(termStr))
-			{
-				calcStack.push(-1 * calcStack.pop());
-			}
-			else if(prcs.isBinOpr(termStr))
-			{
-				Operators operator = new Operators(termStr);
-				
-				long tmp = operator.operate(calcStack.pop(), calcStack.pop());
-				calcStack.push(tmp);
-			}
-			else
-			{
-				calcStack.push(Long.parseLong(termStr));
-			}
-
-			return calcStack;
-		}
-		catch(Exception e)
-		{
-			throw new IllegalArgumentException();
-		}
 	}
 }
