@@ -4,6 +4,8 @@
 testset/
 my_output/
 *.tmp
+*.sublime-*
+.*-version
 
 # Word temporary
 ~$*.doc*
