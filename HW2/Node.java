@@ -1,15 +1,25 @@
+//Node for circular doubly linked list
 public class Node<T> implements NodeInterface<T> {
     private T item;
+    private Node<T> prev;
     private Node<T> next;
+
+    public Node() {
+        this.item = null;
+        this.prev = this;
+        this.next = this;
+    }
 
     public Node(T obj) {
         this.item = obj;
-        this.next = null;
+        this.prev = this;
+        this.next = this;
     }
-    
-    public Node(T obj, Node<T> next) {
-    	this.item = obj;
-    	this.next = next;
+
+    public Node(T obj, Node<T> prev, Node<T> next) {
+        this.item = obj;
+        this.prev = prev;
+        this.next = next;
     }
     
     @Override
@@ -23,8 +33,18 @@ public class Node<T> implements NodeInterface<T> {
     }
     
     @Override
+    public final void setPrev(Node<T> prev) {
+        this.prev = prev;
+    }
+
+    @Override
     public final void setNext(Node<T> next) {
     	this.next = next;
+    }
+
+    @Override
+    public Node<T> getPrev() {
+        return this.prev;
     }
     
     @Override
@@ -34,11 +54,15 @@ public class Node<T> implements NodeInterface<T> {
     
     @Override
     public final void insertNext(T obj) {
-        this.setNext(new Node<>(obj, this.getNext()));
+        Node<T> newNode = new Node<>(obj, this, this.getNext());
+
+        this.getNext().setPrev(newNode);
+        this.setNext(newNode);
     }
     
     @Override
     public final void removeNext() {
 		this.setNext(this.getNext().getNext());
+        this.getNext().getNext().setPrev(this);
     }
 }

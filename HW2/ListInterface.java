@@ -3,11 +3,11 @@ public interface ListInterface<T> extends Iterable<T> {
 
 	public boolean has(T item);
 
-	public T getID();
-
 	public int size();
 
 	public T first();
+
+	public T last();
 
 	public void add(T item);
 

@@ -16,7 +16,7 @@ public class MovieDB {
         String genre = item.getGenre();
         
         try {
-            allMovies.find(genre).insertSorted(item);
+            allMovies.insertSorted(item);
         } catch (NoSuchElementException e) {
             allMovies.insertSorted(new TitleList(item));
         }
@@ -75,31 +75,29 @@ public class MovieDB {
     }
 }
 
-class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<MovieDBItem> {
+class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<MovieDBItem>, Comparable<MovieDBItem> {
     // dummy head
     public TitleList(MovieDBItem firstItem) {
-        head = new Node<MovieDBItem>(firstItem, new Node<MovieDBItem>(firstItem));
+        head = new Node<MovieDBItem>(firstItem);
         numItems = 1;
     }
 
     @Override
-    public void insertSorted(MovieDBItem newItem) {
-        if (this.getID().compareTo(newItem) < 0) this.add(newItem);
+    public void insertItem(MovieDBItem newItem) {
+        if (this.last().compareTo(newItem) < 0) this.add(newItem);
 
         int pos = 0;
-
         for (MovieDBItem item : this) {
             int compare = item.compareTo(newItem);
             if (compare > 0) break;
             else if (compare == 0) return;
             ++pos;
         }
-
         this.insert(newItem, pos);
     }
 
     @Override
-    public void removeSorted(MovieDBItem delItem) {
+    public void removeItem(MovieDBItem delItem) {
         int pos = 0;
 
         for (MovieDBItem item: this) {
@@ -115,17 +113,22 @@ class MovieList extends MyLinkedList<TitleList> implements ListInterface<TitleLi
     @Override
     public TitleList find(String target) throws NoSuchElementException {
         for (TitleList genreList: this) {
-            if(genreList.getID().equals(target)) return genreList;
+            if(genreList.last().equals(target)) return genreList;
         }
         throw new NoSuchElementException();
     }
 
+    public void insertItem(MovieDBItem newItem) throws IllegalArgumentException {
+        for (TitleList list: this) {
+        }
+    }
+
     @Override
-    public void insertSorted(TitleList newList) throws IllegalArgumentException {
+    public void insertItem(TitleList newList) throws IllegalArgumentException {
         int pos = 0;
 
         for (TitleList list: this) {
-            int compare = list.getID().compareTo(newList.getID());
+            int compare = list.last().compareTo(newList.last());
             if(compare > 0) break;
             else if(compare == 0) throw new IllegalArgumentException();
             ++pos;
@@ -135,7 +138,7 @@ class MovieList extends MyLinkedList<TitleList> implements ListInterface<TitleLi
     }
 
     @Override
-    public void removeSorted(TitleList delList) {
+    public void removeItem(TitleList delList) {
         int pos = 0;
 
         for (TitleList genreList: this) {

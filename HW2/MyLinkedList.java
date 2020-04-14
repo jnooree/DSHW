@@ -19,6 +19,11 @@ public class MyLinkedList<T> implements ListInterface<T> {
      * @see SearchCmd#apply(MovieDB)
      * @see java.lang.Iterable#iterator()
      */
+    public MyLinkedList() {
+    	head = new Node<>();
+    	numItems = 0;
+    }
+
     public final Iterator<T> iterator() {
     	return new MyLinkedListIterator<T>(this);
     }
@@ -30,15 +35,10 @@ public class MyLinkedList<T> implements ListInterface<T> {
 
 	@Override
 	public boolean has(T target) {
-		for (T node: this) {
-			if (node.equals(target)) return true;
+		for (T item: this) {
+			if (item.equals(target)) return true;
 		}
 		return false;
-	}
-
-	@Override
-	public T getID() {
-		return head.getItem();
 	}
 
 	@Override
@@ -52,13 +52,23 @@ public class MyLinkedList<T> implements ListInterface<T> {
 	}
 
 	@Override
+	public T last() {
+		return head.getPrev().getItem();
+	}
+
+	@Override
 	public void add(T item) {
-		this.insert(item, numItems);
+		head.getPrev().insertNext(item);
+		++numItems;
 	}
 
 	@Override
 	public void insert(T item, int pos) throws IndexOutOfBoundsException {
 		if (pos > numItems) throw new IndexOutOfBoundsException();
+		if (pos == numItems) {
+			this.add(item);
+			return;
+		}
 		
 		Node<T> last = head;
 		for(int i=0; i<pos; i++) {
@@ -82,18 +92,19 @@ public class MyLinkedList<T> implements ListInterface<T> {
 
 	@Override
 	public void removeAll() {
-		head.setNext(null);
+		head.setNext(head);
+		head.setPrev(head);
 	}
 
 	public T find(String target) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void insertSorted(T ins) {
+	public void insertItem(T ins) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void removeSorted(T del) {
+	public void removeItem(T del) {
 		throw new UnsupportedOperationException();
 	}
 }
@@ -114,7 +125,7 @@ class MyLinkedListIterator<T> implements Iterator<T> {
 
 	@Override
 	public boolean hasNext() {
-		return curr.getNext() != null;
+		return curr.getNext() != list.head;
 	}
 
 	@Override

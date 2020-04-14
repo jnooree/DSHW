@@ -2,8 +2,12 @@ public interface NodeInterface<T> {
     public T getItem();
     
     public void setItem(T item);
+
+    public void setPrev(Node<T> prev);
     
     public void setNext(Node<T> next);
+
+    public Node<T> getPrev();
 
     public Node<T> getNext();
     
@@ -13,16 +17,15 @@ public interface NodeInterface<T> {
 }
 
 /*
-    private T item;
-    private Node<T> next;
-
     public Node(T obj) {
         this.item = obj;
-        this.next = null;
+        this.prev = this;
+        this.next = this;
     }
     
-    public Node(T obj, Node<T> next) {
+    public Node(T obj, Node<T> prev, Node<T> next) {
         this.item = obj;
+        this.prev = prev;
         this.next = next;
     }
 */
