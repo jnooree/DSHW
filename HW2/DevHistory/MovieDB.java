@@ -23,7 +23,7 @@ public class MovieDB {
         }
         allGenres.insert(new TitleList(item));
 
-        System.err.printf("[trace] MovieDB: INSERT [%s] [%s]\n", item.getGenre(), item.getTitle());
+        //System.err.printf("[trace] MovieDB: INSERT [%s] [%s]\n", item.getGenre(), item.getTitle()); //debug
     }
 
     public void delete(MovieDBItem item) {
@@ -34,7 +34,7 @@ public class MovieDB {
            if (titleList.isEmpty()) genreIterator.remove();
         }
 
-        System.err.printf("[trace] MovieDB: DELETE [%s] [%s]\n", item.getGenre(), item.getTitle());
+        //System.err.printf("[trace] MovieDB: DELETE [%s] [%s]\n", item.getGenre(), item.getTitle()); //debug
     }
 
     public TitleList search(String term) throws NoSuchElementException {
@@ -48,7 +48,7 @@ public class MovieDB {
     	
         // This tracing functionality is provided for the sake of debugging.
         // This code should be removed before submitting your work.
-    	System.err.printf("[trace] MovieDB: SEARCH [%s]\n", term);
+    	//System.err.printf("[trace] MovieDB: SEARCH [%s]\n", term); //debug
 
         TitleList result = new TitleList();
         TitleList found = new TitleList();
@@ -75,6 +75,7 @@ public class MovieDB {
 
         for (TitleList titleList: allGenres) {
             for (MovieDBItem item: titleList) {
+                //System.err.printf("[trace] MovieDB: PRINT [(%s, %s)]\n", item.getGenre(), item.getTitle()); //debug
                 result.add(item);
             }
         }
@@ -96,11 +97,11 @@ class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<Movie
 
     public TitleList find(String target) throws NoSuchElementException {
         TitleList result = new TitleList();
-        Pattern p = Pattern.compile(target);
+        Pattern p = Pattern.compile(target, Pattern.LITERAL);
 
         for (MovieDBItem item: this) {
             if (p.matcher(item.getTitle()).find()) {
-                System.err.printf("[trace] MovieDB: MATCHED [%s]\n", item.getTitle());
+                //System.err.printf("[trace] MovieDB: MATCHED [%s]\n", item.getTitle()); //debug
                 result.add(item);
             }
         }
@@ -154,50 +155,3 @@ class GenreList extends MyLinkedList<TitleList> implements ListInterface<TitleLi
         super();
     }
 }
-
-
-/*
-class Item extends Node<String> implements Comparable<Item> {
-	public Item(String name) {
-		super(name);
-	}
-
-    public Item(String name, Item next) {
-        super(name, next);
-    }
-	
-	@Override
-	public int compareTo(Item o) {
-		return this.getItem().compareTo(o.getItem());
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 17;
-
-        String name = this.getItem();
-        return 1 + prime * ((name == null) ? 0 : name.hashCode());
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-
-        Item other = (Item) obj;
-        String name = this.getItem();
-        String otherName = other.getItem();
-
-        if (name == null) {
-            if (otherName != null)
-                return false;
-        } else if (!name.equals(otherName))
-            return false;
-        return true;
-	}
-}
-*/

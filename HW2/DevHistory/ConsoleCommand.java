@@ -1,4 +1,6 @@
 import java.util.Arrays;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 import java.util.NoSuchElementException;
 
 /******************************************************************************
@@ -72,7 +74,7 @@ class DeleteCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		System.err.printf("[trace] DELETE [genre=%s, title=%s]\n", genre, movie);
+		//System.err.printf("[trace] DELETE [genre=%s, title=%s]\n", genre, movie); //debug
 		
 		// 아래의 구현은 수정하지 않는 것이 바람직하다. MovieDB 의 내부 자료구조를
 		// 조작하는 코드는 MovieDB 안쪽에 존재하는 것이 바람직하다. 
@@ -101,7 +103,7 @@ class InsertCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		System.err.printf("[trace] INSERT [genre=%s, title=%s]\n", genre, movie);
+		//System.err.printf("[trace] INSERT [genre=%s, title=%s]\n", genre, movie); //debug
 		db.insert(new MovieDBItem(genre, movie));
 	}
 }
@@ -119,7 +121,7 @@ class PrintCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		System.err.printf("[trace] PRINT\n");
+		//System.err.printf("[trace] PRINT\n"); //debug
 
 		MyLinkedList<MovieDBItem> result = new MyLinkedList<>();
 		try {
@@ -131,8 +133,9 @@ class PrintCmd extends AbstractConsoleCommand {
 		}
 
 		for (MovieDBItem item: result) {
-			System.out.printf("(%s, %s)\n", item.getGenre(), item.getTitle());
+			ConsoleWriter.write(String.format("(%s, %s)\n", item.getGenre(), item.getTitle()));
 		}
+		ConsoleWriter.flush();
 	}
 }
 
@@ -152,7 +155,7 @@ class SearchCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		System.err.printf("[trace] SEARCH [%s]\n", term);
+		//System.err.printf("[trace] SEARCH [%s]\n", term); //debug
 
 		MyLinkedList<MovieDBItem> result = new MyLinkedList<>();
 
@@ -164,8 +167,23 @@ class SearchCmd extends AbstractConsoleCommand {
 		}
 
 		for (MovieDBItem item: result) {
-			System.out.printf("(%s, %s)\n", item.getGenre(), item.getTitle());
+			ConsoleWriter.write(String.format("(%s, %s)\n", item.getGenre(), item.getTitle()));
 		}
+		ConsoleWriter.flush();
+	}
+}
+
+class ConsoleWriter {
+	private static BufferedWriter consoleWriter = new BufferedWriter(new OutputStreamWriter(System.out));
+
+	public ConsoleWriter() {}
+
+	public static void write(String s) throws Exception {
+		consoleWriter.write(s);
+	}
+
+	public static void flush() throws Exception {
+		consoleWriter.flush();
 	}
 }
 

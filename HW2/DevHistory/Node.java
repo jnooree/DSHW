@@ -59,6 +59,14 @@ public class Node<T> implements NodeInterface<T> {
         this.getNext().setPrev(newNode);
         this.setNext(newNode);
     }
+
+    @Override
+    public final void insertPrev(T obj) {
+        Node<T> newNode = new Node<>(obj, this.getPrev(), this);
+
+        this.getPrev().setNext(newNode);
+        this.setPrev(newNode);
+    }
     
     @Override
     public final void removeNext() {

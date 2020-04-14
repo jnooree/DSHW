@@ -11,9 +11,9 @@ public interface ListInterface<T> extends Iterable<T> {
 
 	public void add(T item);
 
-	public void insert(T item, int pos);
+	public void insert(T item);
 
-	public void remove(int pos);
+	public void remove(T item);
 
 	public void removeAll();
 }

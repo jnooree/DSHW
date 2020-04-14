@@ -25,9 +25,8 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
     }
 
     public MyLinkedList(T firstItem) {
-    	head = new Node<>();
-    	head.insertNext(firstItem);
-    	numItems = 1;
+    	this();
+    	this.add(firstItem);
     }
 
     public final Iterator<T> iterator() {
@@ -69,25 +68,9 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 	}
 
 	@Override
-	public void insert(T ins, int pos) throws IndexOutOfBoundsException {
-		if (pos > numItems) throw new IndexOutOfBoundsException();
-		if (pos == numItems) {
-			this.add(ins);
-			return;
-		}
-		
-		Node<T> last = head;
-		for(int i=0; i<pos; i++) {
-			last = last.getNext();
-		}
-		last.insertNext(ins);
-		++numItems;
-	}
-
 	public void insert(T ins) {
 		if (this.isEmpty()) {
-			this.head.insertNext(ins);
-			++numItems;
+			this.add(ins);
 			return;
 		}
 
@@ -95,35 +78,23 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 
 		if (this.last().compareTo(ins) < 0) {
 			this.add(ins);
-			++numItems;
 			return;
 		}
 
 		while (curr != this.head) {
 			int compare = curr.getItem().compareTo(ins);
 			
-			if (compare > 0) curr = curr.getNext();
-			else if (compare == 0) return;
-			else {
-				curr.insertNext(ins);
+			if (compare > 0) {
+				curr.insertPrev(ins);
 				++numItems;
 				return;
 			}
+			else if (compare == 0) return;
+			else curr = curr.getNext();
 		}
 	}
 
 	@Override
-	public void remove(int pos) throws IndexOutOfBoundsException {
-		if (pos > numItems) throw new IndexOutOfBoundsException();
-		
-		Node<T> last = head;
-		for(int i=0; i<pos; i++) {
-			last = last.getNext();
-		}
-		last.removeNext();
-		--numItems;
-	}
-
 	public void remove(T del) {
 		Node<T> curr = this.head.getNext();
 
