@@ -1,4 +1,6 @@
 import java.util.Iterator;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.NoSuchElementException;
 
 /**
@@ -8,33 +10,34 @@ import java.util.NoSuchElementException;
  * 유지하는 데이터베이스이다. 
  */
 public class MovieDB {
-    private static MovieList allMovies = new MovieList();
+    private static GenreList allGenres = new GenreList();
 
     public MovieDB() {}
 
     public void insert(MovieDBItem item) {
-        String genre = item.getGenre();
-        
-        try {
-            allMovies.insertSorted(item);
-        } catch (NoSuchElementException e) {
-            allMovies.insertSorted(new TitleList(item));
+        for (TitleList titleList: allGenres) {
+            if (item.getGenre().equals(titleList.first().getGenre())) {
+                titleList.insert(item);
+                return;
+            }
         }
+        allGenres.insert(new TitleList(item));
+
         System.err.printf("[trace] MovieDB: INSERT [%s] [%s]\n", item.getGenre(), item.getTitle());
     }
 
     public void delete(MovieDBItem item) {
-        String genre = item.getGenre();
+        Iterator<TitleList> genreIterator = allGenres.iterator();
+        while (genreIterator.hasNext()) {
+           TitleList titleList = genreIterator.next();
+           if (item.getGenre().equals(titleList.first().getGenre())) titleList.remove(item);
+           if (titleList.isEmpty()) genreIterator.remove();
+        }
 
-        try {
-            TitleList list = allMovies.find(genre);
-            list.removeSorted(item);
-            if (list.size() == 0) allMovies.removeSorted(list);
-        } catch (NoSuchElementException e) {}
         System.err.printf("[trace] MovieDB: DELETE [%s] [%s]\n", item.getGenre(), item.getTitle());
     }
 
-    public MyLinkedList<MovieDBItem> search(String term) {
+    public TitleList search(String term) throws NoSuchElementException {
         // FIXME implement this
         // Search the given term from the MovieDB.
         // You should return a linked list of MovieDBItem.
@@ -46,105 +49,109 @@ public class MovieDB {
         // This tracing functionality is provided for the sake of debugging.
         // This code should be removed before submitting your work.
     	System.err.printf("[trace] MovieDB: SEARCH [%s]\n", term);
-    	
-    	// FIXME remove this code and return an appropriate MyLinkedList<MovieDBItem> instance.
-    	// This code is supplied for avoiding compilation error.   
-        MyLinkedList<MovieDBItem> results = new MyLinkedList<MovieDBItem>();
 
-        return results;
+        TitleList result = new TitleList();
+        TitleList found = new TitleList();
+
+        for (TitleList titleList: allGenres) {
+            try {
+                found = titleList.find(term);
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+
+            for (MovieDBItem item: found) {
+                result.add(item);                
+            }
+        }
+
+        if (result.isEmpty()) throw new NoSuchElementException();
+        return result;
     }
     
-    public MyLinkedList<MovieDBItem> items() {
-        // FIXME implement this
-        // Search the given term from the MovieDatabase.
-        // You should return a linked list of QueryResult.
-        // The print command is handled at PrintCmd class.
+    public TitleList items() throws NullPointerException {
+        TitleList result = new TitleList();
 
-    	// Printing movie items is the responsibility of PrintCmd class. 
-    	// So you must not use System.out in this method to achieve specs of the assignment.
+        for (TitleList titleList: allGenres) {
+            for (MovieDBItem item: titleList) {
+                result.add(item);
+            }
+        }
 
-    	// Printing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-        System.err.printf("[trace] MovieDB: ITEMS\n");
-
-    	// FIXME remove this code and return an appropriate MyLinkedList<MovieDBItem> instance.
-    	// This code is supplied for avoiding compilation error.   
-        MyLinkedList<MovieDBItem> results = new MyLinkedList<MovieDBItem>();
-        
-    	return results;
+        if (result.isEmpty()) throw new NullPointerException();
+        return result;
     }
 }
 
-class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<MovieDBItem>, Comparable<MovieDBItem> {
+class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<MovieDBItem>, Comparable<TitleList> {
     // dummy head
+    public TitleList() {
+        super();
+    }
+
     public TitleList(MovieDBItem firstItem) {
-        head = new Node<MovieDBItem>(firstItem);
-        numItems = 1;
+        super(firstItem);
     }
 
-    @Override
-    public void insertItem(MovieDBItem newItem) {
-        if (this.last().compareTo(newItem) < 0) this.add(newItem);
-
-        int pos = 0;
-        for (MovieDBItem item : this) {
-            int compare = item.compareTo(newItem);
-            if (compare > 0) break;
-            else if (compare == 0) return;
-            ++pos;
-        }
-        this.insert(newItem, pos);
-    }
-
-    @Override
-    public void removeItem(MovieDBItem delItem) {
-        int pos = 0;
+    public TitleList find(String target) throws NoSuchElementException {
+        TitleList result = new TitleList();
+        Pattern p = Pattern.compile(target);
 
         for (MovieDBItem item: this) {
-            if(item.equals(delItem)) this.remove(pos);
-            ++pos;
+            if (p.matcher(item.getTitle()).find()) {
+                System.err.printf("[trace] MovieDB: MATCHED [%s]\n", item.getTitle());
+                result.add(item);
+            }
         }
+
+        if (result.isEmpty()) throw new NoSuchElementException();
+        return result;
+    }
+
+    @Override
+    public int compareTo(TitleList other) throws IllegalStateException {
+        int genreCompare = this.first().getGenre().compareTo(other.first().getGenre());
+        
+        if (genreCompare != 0) return genreCompare;
+        else throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        
+        TitleList other = (TitleList) obj;
+        Iterator<MovieDBItem> otherIterator = other.iterator();
+
+        if (!this.first().equals(other.first()) || !this.last().equals(other.last()) || this.size() != other.size()) return false;
+
+        for (MovieDBItem myItem: this) {
+            if (!myItem.equals(otherIterator.next())) return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 17;
+        int result = 1;
+        result = prime * result + ((this.first() == null) ? 0 : this.first().hashCode());
+        result = prime * result + ((this.last() == null) ? 0 : this.last().hashCode());
+        result = prime * result + this.size();
+        return result;
     }
 }
 
-class MovieList extends MyLinkedList<TitleList> implements ListInterface<TitleList>  {
-    public MovieList() {}
-
-    @Override
-    public TitleList find(String target) throws NoSuchElementException {
-        for (TitleList genreList: this) {
-            if(genreList.last().equals(target)) return genreList;
-        }
-        throw new NoSuchElementException();
-    }
-
-    public void insertItem(MovieDBItem newItem) throws IllegalArgumentException {
-        for (TitleList list: this) {
-        }
-    }
-
-    @Override
-    public void insertItem(TitleList newList) throws IllegalArgumentException {
-        int pos = 0;
-
-        for (TitleList list: this) {
-            int compare = list.last().compareTo(newList.last());
-            if(compare > 0) break;
-            else if(compare == 0) throw new IllegalArgumentException();
-            ++pos;
-        }
-        
-        this.insert(newList, pos);
-    }
-
-    @Override
-    public void removeItem(TitleList delList) {
-        int pos = 0;
-
-        for (TitleList genreList: this) {
-            if(genreList.getID().getGenre().equals(delList.getID().getGenre())) this.remove(pos);
-            ++pos;
-        }
+class GenreList extends MyLinkedList<TitleList> implements ListInterface<TitleList> {
+    public GenreList() {
+        super();
     }
 }
 

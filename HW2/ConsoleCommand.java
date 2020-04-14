@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 /******************************************************************************
  * Console 을 통해 MovieDB 를 조작하는 인터페이스.
@@ -120,14 +121,17 @@ class PrintCmd extends AbstractConsoleCommand {
 	public void apply(MovieDB db) throws Exception {
 		System.err.printf("[trace] PRINT\n");
 
-		MyLinkedList<MovieDBItem> result = db.items();
-
-		if (result.size() == 0) {
+		MyLinkedList<MovieDBItem> result = new MyLinkedList<>();
+		try {
+			result = db.items();
+		}
+		catch (NullPointerException e) {
 			System.out.println("EMPTY");
-		} else {
-			for (MovieDBItem item : result) {
-				System.out.printf("(%s, %s)\n", item.getGenre(), item.getTitle());
-			}
+			return;
+		}
+
+		for (MovieDBItem item: result) {
+			System.out.printf("(%s, %s)\n", item.getGenre(), item.getTitle());
 		}
 	}
 }
@@ -150,14 +154,17 @@ class SearchCmd extends AbstractConsoleCommand {
 	public void apply(MovieDB db) throws Exception {
 		System.err.printf("[trace] SEARCH [%s]\n", term);
 
-		MyLinkedList<MovieDBItem> result = db.search(term);
+		MyLinkedList<MovieDBItem> result = new MyLinkedList<>();
 
-		if (result.size() == 0) {
+		try {
+			result = db.search(term);
+		} catch (NoSuchElementException e) {
 			System.out.println("EMPTY");
-		} else {
-			for (MovieDBItem item : result) {
-				System.out.printf("(%s, %s)\n", item.getGenre(), item.getTitle());
-			}
+			return;
+		}
+
+		for (MovieDBItem item: result) {
+			System.out.printf("(%s, %s)\n", item.getGenre(), item.getTitle());
 		}
 	}
 }

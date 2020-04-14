@@ -1,7 +1,7 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class MyLinkedList<T> implements ListInterface<T> {
+public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 	// dummy head
 	Node<T> head;
 	int numItems;
@@ -22,6 +22,12 @@ public class MyLinkedList<T> implements ListInterface<T> {
     public MyLinkedList() {
     	head = new Node<>();
     	numItems = 0;
+    }
+
+    public MyLinkedList(T firstItem) {
+    	head = new Node<>();
+    	head.insertNext(firstItem);
+    	numItems = 1;
     }
 
     public final Iterator<T> iterator() {
@@ -63,10 +69,10 @@ public class MyLinkedList<T> implements ListInterface<T> {
 	}
 
 	@Override
-	public void insert(T item, int pos) throws IndexOutOfBoundsException {
+	public void insert(T ins, int pos) throws IndexOutOfBoundsException {
 		if (pos > numItems) throw new IndexOutOfBoundsException();
 		if (pos == numItems) {
-			this.add(item);
+			this.add(ins);
 			return;
 		}
 		
@@ -74,8 +80,36 @@ public class MyLinkedList<T> implements ListInterface<T> {
 		for(int i=0; i<pos; i++) {
 			last = last.getNext();
 		}
-		last.insertNext(item);
+		last.insertNext(ins);
 		++numItems;
+	}
+
+	public void insert(T ins) {
+		if (this.isEmpty()) {
+			this.head.insertNext(ins);
+			++numItems;
+			return;
+		}
+
+		Node<T> curr = this.head.getNext();
+
+		if (this.last().compareTo(ins) < 0) {
+			this.add(ins);
+			++numItems;
+			return;
+		}
+
+		while (curr != this.head) {
+			int compare = curr.getItem().compareTo(ins);
+			
+			if (compare > 0) curr = curr.getNext();
+			else if (compare == 0) return;
+			else {
+				curr.insertNext(ins);
+				++numItems;
+				return;
+			}
+		}
 	}
 
 	@Override
@@ -90,26 +124,29 @@ public class MyLinkedList<T> implements ListInterface<T> {
 		--numItems;
 	}
 
+	public void remove(T del) {
+		Node<T> curr = this.head.getNext();
+
+		while (curr != this.head) {
+			if (curr.getItem().equals(del)) {
+				curr.getPrev().removeNext();
+				--numItems;
+				return;
+			}
+			
+			curr = curr.getNext();
+		}
+	}
+
 	@Override
 	public void removeAll() {
 		head.setNext(head);
 		head.setPrev(head);
-	}
-
-	public T find(String target) {
-		throw new UnsupportedOperationException();
-	}
-
-	public void insertItem(T ins) {
-		throw new UnsupportedOperationException();
-	}
-
-	public void removeItem(T del) {
-		throw new UnsupportedOperationException();
+		numItems = 0;
 	}
 }
 
-class MyLinkedListIterator<T> implements Iterator<T> {
+class MyLinkedListIterator<T extends Comparable<T>> implements Iterator<T> {
 	// FIXME implement this
 	// Implement the iterator for MyLinkedList.
 	// You have to maintain the current position of the iterator.
