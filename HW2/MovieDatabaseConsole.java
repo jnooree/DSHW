@@ -297,7 +297,7 @@ class ConsoleWriter {
  * 유지하는 데이터베이스이다. 
  */
 class MovieDB {
-    private static GenreList allGenres = new GenreList();
+    private MyLinkedList<TitleList> allGenres = new MyLinkedList<>();
 
     public MovieDB() {}
 
@@ -313,6 +313,7 @@ class MovieDB {
 
     public void delete(MovieDBItem item) {
         Iterator<TitleList> genreIterator = allGenres.iterator();
+
         while (genreIterator.hasNext()) {
            TitleList titleList = genreIterator.next();
            if (item.getGenre().equals(titleList.first().getGenre())) titleList.remove(item);
@@ -353,6 +354,71 @@ class MovieDB {
         return result;
     }
 }
+
+/******************************************************************************
+ * MovieDB의 인터페이스에서 공통으로 사용하는 클래스.
+ */
+class MovieDBItem implements Comparable<MovieDBItem> {
+    private final String genre;
+    private final String title;
+
+    public MovieDBItem(String genre, String title) {
+        if (genre == null) throw new NullPointerException("genre");
+        if (title == null) throw new NullPointerException("title");
+
+        this.genre = genre;
+        this.title = title;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    @Override
+    public int compareTo(MovieDBItem other) {
+        int genreCompare = this.getGenre().compareTo(other.getGenre());
+        
+        if (genreCompare != 0) return genreCompare;
+        else return this.getTitle().compareTo(other.getTitle());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+
+        MovieDBItem other = (MovieDBItem) obj;
+        if (genre == null) {
+            if (other.genre != null)
+                return false;
+        } else if (!genre.equals(other.genre))
+            return false;
+        if (title == null) {
+            if (other.title != null)
+                return false;
+        } else if (!title.equals(other.title))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((genre == null) ? 0 : genre.hashCode());
+        result = prime * result + ((title == null) ? 0 : title.hashCode());
+        return result;
+    }
+}
+
 
 class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<MovieDBItem>, Comparable<TitleList> {
     public TitleList() {
@@ -395,10 +461,9 @@ class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<Movie
             return false;
         
         TitleList other = (TitleList) obj;
-        Iterator<MovieDBItem> otherIterator = other.iterator();
-
         if (!this.first().equals(other.first()) || !this.last().equals(other.last()) || this.size() != other.size()) return false;
 
+        Iterator<MovieDBItem> otherIterator = other.iterator();
         for (MovieDBItem myItem: this) {
             if (!myItem.equals(otherIterator.next())) return false;
         }
@@ -417,14 +482,8 @@ class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<Movie
     }
 }
 
-class GenreList extends MyLinkedList<TitleList> implements ListInterface<TitleList> {
-    public GenreList() {
-        super();
-    }
-}
 
-
-interface ListInterface<T> extends Iterable<T> {
+interface ListInterface<T extends Comparable<T>> extends Iterable<T> {
 	public boolean isEmpty();
 
 	public int size();
@@ -439,6 +498,28 @@ interface ListInterface<T> extends Iterable<T> {
 
 	public void remove(T item);
 }
+
+//Node for circular doubly linked list
+interface NodeInterface<T> {
+    public T getItem();
+    
+    public void setItem(T item);
+
+    public void setPrev(Node<T> prev);
+    
+    public void setNext(Node<T> next);
+
+    public Node<T> getPrev();
+
+    public Node<T> getNext();
+    
+    public void insertNext(T obj);
+
+    public void insertPrev(T obj);
+    
+    public void removeNext();
+}
+
 
 class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 	// dummy head
@@ -585,26 +666,6 @@ class MyLinkedListIterator<T extends Comparable<T>> implements Iterator<T> {
 	}
 }
 
-//Node for circular doubly linked list
-interface NodeInterface<T> {
-    public T getItem();
-    
-    public void setItem(T item);
-
-    public void setPrev(Node<T> prev);
-    
-    public void setNext(Node<T> next);
-
-    public Node<T> getPrev();
-
-    public Node<T> getNext();
-    
-    public void insertNext(T obj);
-
-    public void insertPrev(T obj);
-    
-    public void removeNext();
-}
 
 class Node<T> implements NodeInterface<T> {
     private T item;
