@@ -177,6 +177,7 @@ class DeleteCmd extends AbstractConsoleCommand {
 	private String genre;
 	private String movie;
 
+	@Override
 	public void parseArguments(String[] args) throws CommandParseException {
 		if (args.length != 3)
 			throw new CommandParseException(
@@ -232,12 +233,12 @@ class PrintCmd extends AbstractConsoleCommand {
 			result = db.items();
 		}
 		catch (NullPointerException e) {
-			System.out.println("EMPTY");
+			ConsoleWriter.println("EMPTY");
 			return;
 		}
 
 		for (MovieDBItem item: result) {
-			ConsoleWriter.write(String.format("(%s, %s)\n", item.getGenre(), item.getTitle()));
+			ConsoleWriter.writeln("(%s, %s)", item.getGenre(), item.getTitle());
 		}
 		ConsoleWriter.flush();
 	}
@@ -264,12 +265,12 @@ class SearchCmd extends AbstractConsoleCommand {
 		try {
 			result = db.search(term);
 		} catch (NoSuchElementException e) {
-			System.out.println("EMPTY");
+			ConsoleWriter.println("EMPTY");
 			return;
 		}
 
 		for (MovieDBItem item: result) {
-			ConsoleWriter.write(String.format("(%s, %s)\n", item.getGenre(), item.getTitle()));
+			ConsoleWriter.writeln("(%s, %s)", item.getGenre(), item.getTitle());
 		}
 		ConsoleWriter.flush();
 	}
@@ -280,12 +281,21 @@ class ConsoleWriter {
 
 	public ConsoleWriter() {}
 
-	public static void write(String s) throws Exception {
-		consoleWriter.write(s);
+	public static void writef(String s, Object... arg) throws Exception {
+		consoleWriter.write(String.format(s, arg));
+	}
+
+	public static void writeln(String s, Object... arg) throws Exception {
+		ConsoleWriter.writef(s + "\n", arg);
 	}
 
 	public static void flush() throws Exception {
 		consoleWriter.flush();
+	}
+
+	public static void println(String s, Object... arg) throws Exception {
+		ConsoleWriter.writeln(s + "\n", arg);
+		ConsoleWriter.flush();
 	}
 }
 
