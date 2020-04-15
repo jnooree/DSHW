@@ -64,6 +64,7 @@ class DeleteCmd extends AbstractConsoleCommand {
 	private String genre;
 	private String movie;
 
+	@Override
 	public void parseArguments(String[] args) throws CommandParseException {
 		if (args.length != 3)
 			throw new CommandParseException(
@@ -74,13 +75,6 @@ class DeleteCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		//System.err.printf("[trace] DELETE [genre=%s, title=%s]\n", genre, movie); //debug
-		
-		// 아래의 구현은 수정하지 않는 것이 바람직하다. MovieDB 의 내부 자료구조를
-		// 조작하는 코드는 MovieDB 안쪽에 존재하는 것이 바람직하다. 
-		//
-		// 내용이 단 한 줄인 메소드가 굳이 필요한가 하는 생각이 든다면
-		// PrintCmd 나 SearchCmd 의 apply 메소드를 참고하라.
 		db.delete(new MovieDBItem(genre, movie));
 	}
 }
@@ -103,7 +97,6 @@ class InsertCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		//System.err.printf("[trace] INSERT [genre=%s, title=%s]\n", genre, movie); //debug
 		db.insert(new MovieDBItem(genre, movie));
 	}
 }
@@ -121,19 +114,18 @@ class PrintCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		//System.err.printf("[trace] PRINT\n"); //debug
-
 		MyLinkedList<MovieDBItem> result = new MyLinkedList<>();
+
 		try {
 			result = db.items();
 		}
 		catch (NullPointerException e) {
-			System.out.println("EMPTY");
+			ConsoleWriter.println("EMPTY");
 			return;
 		}
 
 		for (MovieDBItem item: result) {
-			ConsoleWriter.write(String.format("(%s, %s)\n", item.getGenre(), item.getTitle()));
+			ConsoleWriter.writeln("(%s, %s)", item.getGenre(), item.getTitle());
 		}
 		ConsoleWriter.flush();
 	}
@@ -155,19 +147,17 @@ class SearchCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		//System.err.printf("[trace] SEARCH [%s]\n", term); //debug
-
 		MyLinkedList<MovieDBItem> result = new MyLinkedList<>();
 
 		try {
 			result = db.search(term);
 		} catch (NoSuchElementException e) {
-			System.out.println("EMPTY");
+			ConsoleWriter.println("EMPTY");
 			return;
 		}
 
 		for (MovieDBItem item: result) {
-			ConsoleWriter.write(String.format("(%s, %s)\n", item.getGenre(), item.getTitle()));
+			ConsoleWriter.writeln("(%s, %s)", item.getGenre(), item.getTitle());
 		}
 		ConsoleWriter.flush();
 	}
@@ -178,14 +168,24 @@ class ConsoleWriter {
 
 	public ConsoleWriter() {}
 
-	public static void write(String s) throws Exception {
-		consoleWriter.write(s);
+	public static void writef(String s, Object... arg) throws Exception {
+		consoleWriter.write(String.format(s, arg));
+	}
+
+	public static void writeln(String s, Object... arg) throws Exception {
+		ConsoleWriter.writef(s + "\n", arg);
 	}
 
 	public static void flush() throws Exception {
 		consoleWriter.flush();
 	}
+
+	public static void println(String s, Object... arg) throws Exception {
+		ConsoleWriter.writeln(s + "\n", arg);
+		ConsoleWriter.flush();
+	}
 }
+
 
 /******************************************************************************
  * 아래의 코드는 ConsoleCommand 에서 사용하는 익셉션들의 모음이다. 

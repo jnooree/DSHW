@@ -39,14 +39,6 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 	}
 
 	@Override
-	public boolean has(T target) {
-		for (T item: this) {
-			if (item.equals(target)) return true;
-		}
-		return false;
-	}
-
-	@Override
 	public int size() {
 		return numItems;
 	}
@@ -74,13 +66,12 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 			return;
 		}
 
-		Node<T> curr = this.head.getNext();
-
 		if (this.last().compareTo(ins) < 0) {
 			this.add(ins);
 			return;
 		}
 
+		Node<T> curr = this.head.getNext();
 		while (curr != this.head) {
 			int compare = curr.getItem().compareTo(ins);
 			
@@ -88,9 +79,11 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 				curr.insertPrev(ins);
 				++numItems;
 				return;
+			} else if (compare == 0) {
+				return;
+			} else {
+				curr = curr.getNext();
 			}
-			else if (compare == 0) return;
-			else curr = curr.getNext();
 		}
 	}
 
@@ -107,13 +100,6 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 			
 			curr = curr.getNext();
 		}
-	}
-
-	@Override
-	public void removeAll() {
-		head.setNext(head);
-		head.setPrev(head);
-		numItems = 0;
 	}
 }
 

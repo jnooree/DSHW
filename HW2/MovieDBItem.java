@@ -37,6 +37,7 @@ public class MovieDBItem implements Comparable<MovieDBItem> {
             return false;
         if (getClass() != obj.getClass())
             return false;
+
         MovieDBItem other = (MovieDBItem) obj;
         if (genre == null) {
             if (other.genre != null)

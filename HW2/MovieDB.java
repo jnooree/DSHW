@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
  * 유지하는 데이터베이스이다. 
  */
 public class MovieDB {
-    private static GenreList allGenres = new GenreList();
+    private MyLinkedList<TitleList> allGenres = new MyLinkedList<>();
 
     public MovieDB() {}
 
@@ -22,42 +22,26 @@ public class MovieDB {
             }
         }
         allGenres.insert(new TitleList(item));
-
-        //System.err.printf("[trace] MovieDB: INSERT [%s] [%s]\n", item.getGenre(), item.getTitle()); //debug
     }
 
     public void delete(MovieDBItem item) {
         Iterator<TitleList> genreIterator = allGenres.iterator();
+
         while (genreIterator.hasNext()) {
            TitleList titleList = genreIterator.next();
            if (item.getGenre().equals(titleList.first().getGenre())) titleList.remove(item);
            if (titleList.isEmpty()) genreIterator.remove();
         }
-
-        //System.err.printf("[trace] MovieDB: DELETE [%s] [%s]\n", item.getGenre(), item.getTitle()); //debug
     }
 
     public TitleList search(String term) throws NoSuchElementException {
-        // FIXME implement this
-        // Search the given term from the MovieDB.
-        // You should return a linked list of MovieDBItem.
-        // The search command is handled at SearchCmd class.
-    	
-    	// Printing search results is the responsibility of SearchCmd class. 
-    	// So you must not use System.out in this method to achieve specs of the assignment.
-    	
-        // This tracing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-    	//System.err.printf("[trace] MovieDB: SEARCH [%s]\n", term); //debug
-
         TitleList result = new TitleList();
         TitleList found = new TitleList();
 
         for (TitleList titleList: allGenres) {
             try {
                 found = titleList.find(term);
-            }
-            catch (NoSuchElementException e) {
+            } catch (NoSuchElementException e) {
                 continue;
             }
 
@@ -75,7 +59,6 @@ public class MovieDB {
 
         for (TitleList titleList: allGenres) {
             for (MovieDBItem item: titleList) {
-                //System.err.printf("[trace] MovieDB: PRINT [(%s, %s)]\n", item.getGenre(), item.getTitle()); //debug
                 result.add(item);
             }
         }
@@ -86,7 +69,6 @@ public class MovieDB {
 }
 
 class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<MovieDBItem>, Comparable<TitleList> {
-    // dummy head
     public TitleList() {
         super();
     }
@@ -101,7 +83,6 @@ class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<Movie
 
         for (MovieDBItem item: this) {
             if (p.matcher(item.getTitle()).find()) {
-                //System.err.printf("[trace] MovieDB: MATCHED [%s]\n", item.getTitle()); //debug
                 result.add(item);
             }
         }
@@ -115,7 +96,7 @@ class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<Movie
         int genreCompare = this.first().getGenre().compareTo(other.first().getGenre());
         
         if (genreCompare != 0) return genreCompare;
-        else throw new IllegalStateException();
+        else throw new IllegalStateException("No repeating genre is accepted");
     }
 
     @Override
@@ -128,10 +109,9 @@ class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<Movie
             return false;
         
         TitleList other = (TitleList) obj;
-        Iterator<MovieDBItem> otherIterator = other.iterator();
-
         if (!this.first().equals(other.first()) || !this.last().equals(other.last()) || this.size() != other.size()) return false;
 
+        Iterator<MovieDBItem> otherIterator = other.iterator();
         for (MovieDBItem myItem: this) {
             if (!myItem.equals(otherIterator.next())) return false;
         }
@@ -147,11 +127,5 @@ class TitleList extends MyLinkedList<MovieDBItem> implements ListInterface<Movie
         result = prime * result + ((this.last() == null) ? 0 : this.last().hashCode());
         result = prime * result + this.size();
         return result;
-    }
-}
-
-class GenreList extends MyLinkedList<TitleList> implements ListInterface<TitleList> {
-    public GenreList() {
-        super();
     }
 }

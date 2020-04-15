@@ -10,12 +10,6 @@ public class Node<T> implements NodeInterface<T> {
         this.next = this;
     }
 
-    public Node(T obj) {
-        this.item = obj;
-        this.prev = this;
-        this.next = this;
-    }
-
     public Node(T obj, Node<T> prev, Node<T> next) {
         this.item = obj;
         this.prev = prev;
@@ -24,12 +18,12 @@ public class Node<T> implements NodeInterface<T> {
     
     @Override
     public final T getItem() {
-    	return item;
+        return item;
     }
     
     @Override
     public final void setItem(T item) {
-    	this.item = item;
+        this.item = item;
     }
     
     @Override
@@ -39,7 +33,7 @@ public class Node<T> implements NodeInterface<T> {
 
     @Override
     public final void setNext(Node<T> next) {
-    	this.next = next;
+        this.next = next;
     }
 
     @Override
@@ -49,7 +43,7 @@ public class Node<T> implements NodeInterface<T> {
     
     @Override
     public Node<T> getNext() {
-    	return this.next;
+        return this.next;
     }
     
     @Override
@@ -72,7 +66,7 @@ public class Node<T> implements NodeInterface<T> {
     public final void removeNext() {
         Node<T> nnNode = this.getNext().getNext();
 
-		this.setNext(nnNode);
+        this.setNext(nnNode);
         nnNode.setPrev(this);
     }
 }
