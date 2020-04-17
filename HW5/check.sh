@@ -2,7 +2,7 @@
 echo "-compile start-"
 
 # Compile
-javac MovieDatabaseConsole.java
+javac Matching.java
 
 mkdir -p my_output
 
@@ -11,8 +11,8 @@ start=$SECONDS
 echo "-execute your program-"
 for i in $(seq 1 100)
 do
-        # 무한루프를 방지하기 위해 input 당 시간제한
-        timeout 100 java MovieDatabaseConsole < testset/input/$i.txt > my_output/$i.txt
+        # 무한루프를 방지하기 위해 input 당 시간제한 5초
+        timeout 3 java Matching < testset/input/$i.txt > my_output/$i.txt
 done
 
 # testset의 실행에 소요된 시간
