@@ -174,7 +174,7 @@ class ConsoleWriter {
 	}
 
 	public static void println(String s, Object... arg) throws Exception {
-		ConsoleWriter.writeln(s + "\n", arg);
+		ConsoleWriter.writeln(s, arg);
 		ConsoleWriter.flush();
 	}
 }

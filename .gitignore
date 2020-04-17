@@ -6,6 +6,7 @@ my_output/
 *.tmp
 *.sublime-*
 .*-version
+*.tar
 
 # Word temporary
 ~$*.doc*
