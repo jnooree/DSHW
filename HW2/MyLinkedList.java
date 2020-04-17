@@ -61,12 +61,7 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 
 	@Override
 	public void insert(T ins) {
-		if (this.isEmpty()) {
-			this.add(ins);
-			return;
-		}
-
-		if (this.last().compareTo(ins) < 0) {
+		if (this.isEmpty() || this.last().compareTo(ins) < 0) {
 			this.add(ins);
 			return;
 		}
@@ -93,11 +88,10 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T> {
 
 		while (curr != this.head) {
 			if (curr.getItem().equals(del)) {
-				curr.getPrev().removeNext();
+				curr.remove();
 				--numItems;
 				return;
 			}
-			
 			curr = curr.getNext();
 		}
 	}
@@ -139,7 +133,7 @@ class MyLinkedListIterator<T extends Comparable<T>> implements Iterator<T> {
 			throw new IllegalStateException("next() should be called first");
 		if (curr == null)
 			throw new NoSuchElementException();
-		prev.removeNext();
+		curr.remove();
 		list.numItems -= 1;
 		curr = prev;
 		prev = null;

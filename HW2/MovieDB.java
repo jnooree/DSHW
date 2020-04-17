@@ -50,7 +50,6 @@ public class MovieDB {
             }
         }
 
-        if (result.isEmpty()) throw new NoSuchElementException();
         return result;
     }
     
@@ -63,7 +62,6 @@ public class MovieDB {
             }
         }
 
-        if (result.isEmpty()) throw new NullPointerException();
         return result;
     }
 }

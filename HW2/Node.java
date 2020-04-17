@@ -63,10 +63,8 @@ public class Node<T> implements NodeInterface<T> {
     }
     
     @Override
-    public final void removeNext() {
-        Node<T> nnNode = this.getNext().getNext();
-
-        this.setNext(nnNode);
-        nnNode.setPrev(this);
+    public final void remove() {
+        this.getPrev().setNext(this.getNext());
+        this.getNext().setPrev(this.getPrev());
     }
 }

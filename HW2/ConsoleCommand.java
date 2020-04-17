@@ -4,44 +4,41 @@ import java.io.OutputStreamWriter;
 import java.util.NoSuchElementException;
 
 /******************************************************************************
- * Console 을 통해 MovieDB 를 조작하는 인터페이스.
+ * 명령들의 해석 규칙이 동일하므로, 코드 중복을 없애기 위한 추상 클래스.
  */
-public interface ConsoleCommand {
+public abstract class ConsoleCommand {
 	/**
 	 * input 을 해석하는 공통 인터페이스.
 	 * @param input {@code String} 타입의 입력 문자열
 	 * @throws CommandParseException 입력 규칙에 맞지 않는 입력이 들어올 경우 발생
-	 */
-	void parse(String input) throws CommandParseException;
-
-	/**
-	 * 명령을 MovieDB 에 적용하고 결과를 출력하는 인터페이스를 정의한다.
-	 * @param db 조작할 DB 인스턴스
-	 * @throws Exception 일반 오류
-	 */
-	void apply(MovieDB db) throws Exception;
-}
-
-/******************************************************************************
- * 명령들의 해석 규칙이 동일하므로, 코드 중복을 없애기 위한 추상 클래스.
- */
-abstract class AbstractConsoleCommand implements ConsoleCommand {
-	/**
+	 *
 	 * 공통 명령 해석 규칙을 담고 있다. {@code input} 을 분해하여 String[] 으로 만들고, 
-	 * {@link AbstractConsoleCommand.parseArguments} 로 인자를 전달한다.
+	 * {@link ConsoleCommand.parseArguments} 로 인자를 전달한다.
 	 * 
 	 * 만약 어떤 명령이 별도의 해석 규칙이 필요한 경우 이 메소드를 직접 오버라이드하면 된다. 
 	 */
-	@Override
-	public void parse(String input) throws CommandParseException {
-		if (input.isEmpty()) throw new CommandParseException("no input");
+	public static ConsoleCommand parse(String input) throws CommandParseException {
+		ConsoleCommand command = null;
+
+		if (input.startsWith("INSERT")) {
+			command = new InsertCmd();
+		} else if (input.startsWith("DELETE")) {
+			command = new DeleteCmd();
+		} else if (input.startsWith("SEARCH")) {
+			command = new SearchCmd();
+		} else if (input.startsWith("PRINT")) {
+			command = new PrintCmd();
+		} else {
+			throw new CommandParseException(input);
+		}
 
 		String[] args = input.split(" *% *%? *");
-		parseArguments(args);
+		command.parseArguments(args);
+		return command;
 	}
 
 	/**
-	 * {@link AbstractConsoleCommand.parse} 메소드에서 분해된 문자열 배열(String[]) 을 이용해 
+	 * {@link ConsoleCommand.parse} 메소드에서 분해된 문자열 배열(String[]) 을 이용해 
 	 * 인자를 해석하는 추상 메소드. 
 	 * 
 	 * 자식 클래스들은 parse 메소드가 아니라 이 메소드를 오버라이드하여
@@ -51,16 +48,17 @@ abstract class AbstractConsoleCommand implements ConsoleCommand {
 	 * @throws CommandParseException args가 명령의 규약에 맞지 않을 경우
 	 */
 	protected abstract void parseArguments(String[] args) throws CommandParseException;
+
+	public abstract void apply(MovieDB db) throws Exception;
 }
 
 /******************************************************************************
  * 아래부터 각 명령어별로 과제 스펙에 맞는 구현을 한다.
  */
-
 /******************************************************************************
  * DELETE %GENRE% %MOVIE% 
  */
-class DeleteCmd extends AbstractConsoleCommand {
+class DeleteCmd extends ConsoleCommand {
 	private String genre;
 	private String movie;
 
@@ -82,7 +80,7 @@ class DeleteCmd extends AbstractConsoleCommand {
 /******************************************************************************
  * INSERT %GENRE% %MOVIE% 
  */
-class InsertCmd extends AbstractConsoleCommand {
+class InsertCmd extends ConsoleCommand {
 	private String genre;
 	private String movie;
 
@@ -104,7 +102,7 @@ class InsertCmd extends AbstractConsoleCommand {
 /******************************************************************************
  * PRINT 
  */
-class PrintCmd extends AbstractConsoleCommand {
+class PrintCmd extends ConsoleCommand {
 	@Override
 	protected void parseArguments(String[] args) throws CommandParseException {
 		if (args.length != 1)
@@ -114,12 +112,9 @@ class PrintCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		MyLinkedList<MovieDBItem> result = new MyLinkedList<>();
+		MyLinkedList<MovieDBItem> result = db.items();
 
-		try {
-			result = db.items();
-		}
-		catch (NullPointerException e) {
+		if (result.isEmpty()) {
 			ConsoleWriter.println("EMPTY");
 			return;
 		}
@@ -134,7 +129,7 @@ class PrintCmd extends AbstractConsoleCommand {
 /******************************************************************************
  * SEARCH %TERM% 
  */
-class SearchCmd extends AbstractConsoleCommand {
+class SearchCmd extends ConsoleCommand {
 	private String term;
 
 	@Override
@@ -147,11 +142,9 @@ class SearchCmd extends AbstractConsoleCommand {
 
 	@Override
 	public void apply(MovieDB db) throws Exception {
-		MyLinkedList<MovieDBItem> result = new MyLinkedList<>();
+		MyLinkedList<MovieDBItem> result = db.search(term);
 
-		try {
-			result = db.search(term);
-		} catch (NoSuchElementException e) {
+		if (result.isEmpty()) {
 			ConsoleWriter.println("EMPTY");
 			return;
 		}
@@ -233,24 +226,5 @@ class CommandParseException extends ConsoleCommandException {
 
 	public String getInput() {
 		return input;
-	}
-
-}
-
-/******************************************************************************
- * 존재하지 않는 명령을 사용자가 요구하는 경우를 서술하기 위한 예외 클래스 
- */
-class CommandNotFoundException extends ConsoleCommandException {
-	private String command;
-
-	public CommandNotFoundException(String command) {
-		super(String.format("input command: %s", command));
-		this.command = command;
-	}
-
-	private static final long serialVersionUID = 1L;
-
-	public String getCommand() {
-		return command;
 	}
 }

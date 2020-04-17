@@ -15,5 +15,5 @@ public interface NodeInterface<T> {
 
     public void insertPrev(T obj);
     
-    public void removeNext();
+    public void remove();
 }
