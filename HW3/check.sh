@@ -27,4 +27,4 @@ do
 
 done
 
-rm *.class
+rm ./*.class
