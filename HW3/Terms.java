@@ -117,12 +117,12 @@ class BinOpr extends Terms {
 
 	@Override
 	public long operate(long num1, long num2) throws IllegalArgumentException {
-		if(this.getTerm().equals("^") && num1 >= 0) return (long) Math.pow(num2, num1);
-		else if(this.getTerm().equals("*")) return num2 * num1;
-		else if(this.getTerm().equals("/") && num1 != 0) return num2 / num1;
-		else if(this.getTerm().equals("%") && num1 != 0) return num2 % num1;
-		else if(this.getTerm().equals("+")) return num2 + num1;
-		else if(this.getTerm().equals("-")) return num2 - num1;
+		if (this.getTerm().equals("^") && num1 >= 0) return (long) Math.pow(num2, num1);
+		else if (this.getTerm().equals("*")) return num2 * num1;
+		else if (this.getTerm().equals("/") && num1 != 0) return num2 / num1;
+		else if (this.getTerm().equals("%") && num1 != 0) return num2 % num1;
+		else if (this.getTerm().equals("+")) return num2 + num1;
+		else if (this.getTerm().equals("-")) return num2 - num1;
 
 		throw new IllegalArgumentException();
 	}
@@ -132,7 +132,7 @@ class BinOpr extends Terms {
 		if (!term.isOperator()) return 1;
 		if (this.getTerm().equals(term.getTerm())) return 0;
 
-		for(List<String> currPriorityList: PRIORITY_LIST)
+		for (List<String> currPriorityList: PRIORITY_LIST)
 		{
 			if (currPriorityList.contains(this.getTerm())) return 1;
 			else if (currPriorityList.contains(term.getTerm())) return -1;

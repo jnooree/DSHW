@@ -8,13 +8,11 @@ public class PostFixer {
 
 	public static List<Terms> convert(String inExpr) throws IllegalArgumentException {
 		List<Terms> result = new ArrayList<Terms>();
-		EvalHelper helper = new EvalHelper();
-
-		inExpr = "p" + inExpr + ")";
+		EvalHelper helper = new EvalHelper(inExpr);
 
 		while (true) {
-			List<Terms> tmpResult = helper.getTerms(inExpr);
-			inExpr = helper.step(inExpr);
+			List<Terms> tmpResult = helper.getTerms();
+			inExpr = helper.step();
 
 			if (!tmpResult.isEmpty()) result.addAll(tmpResult);
 
@@ -43,23 +41,25 @@ public class PostFixer {
 		private static final List<String> REPL_LIST = Arrays.asList("n", "p", "d", "s", "e", "o");
 
 		private ConvStack oprStack;
+		private String inExpr;
 		private Matcher currMatcher;
 		private int currType;
 
-		EvalHelper() {
-			 oprStack = new ConvStack();
+		EvalHelper(String inExpr) {
+			 this.oprStack = new ConvStack();
+			 this.inExpr = "p" + inExpr + ")";
 		}
 
 		boolean isDone() {
 			return oprStack.empty();
 		}
 
-		List<Terms> getTerms(String inExpr) throws IllegalArgumentException {
+		List<Terms> getTerms() throws IllegalArgumentException {
 			for (int i=0; i<PATTERNS_LIST.size(); i++) {
 				currMatcher = PATTERNS_LIST.get(i).matcher(inExpr);
 
 				if (currMatcher.find()) {
-					this.currType = i;
+					currType = i;
 					return this.toPostfix();
 				}
 			}
@@ -67,9 +67,9 @@ public class PostFixer {
 			throw new IllegalArgumentException();
 		}
 
-		String step(String inExpr) {
-			inExpr = replaceGroup(inExpr, "repl", REPL_LIST.get(currType));
-			if (currType == 2) inExpr = replaceGroup(inExpr, "lpar", "");
+		String step() {
+			inExpr = replaceGroup("repl", REPL_LIST.get(currType));
+			if (currType == 2) inExpr = replaceGroup("lpar", "");
 
 			return inExpr;
 		}
@@ -87,7 +87,8 @@ public class PostFixer {
 				oprStack.push(currTerm);
 			}
 			else {
-				result.addAll(oprStack.popTo(currTerm));
+				List<Terms> tmp = oprStack.popTo(currTerm);
+				if (!tmp.isEmpty()) result.addAll(tmp);
 				
 				if (currType == 2) oprStack.pop(); //right parenthesis
 				else oprStack.push(currTerm); //binary operators
@@ -96,7 +97,7 @@ public class PostFixer {
 			return result;
 		}
 
-		private String replaceGroup(String inExpr, String group, String repl) {
+		private String replaceGroup(String group, String repl) {
 			StringBuilder repBuilder = new StringBuilder(inExpr);
 
 			repBuilder.replace(currMatcher.start(group), currMatcher.end(group), repl);
