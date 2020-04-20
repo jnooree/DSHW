@@ -2,8 +2,6 @@ import java.util.*;
 import java.util.regex.*;
 
 public class PostFixer {
-	private static final Pattern DONE_PATTERN = Pattern.compile("^[noeds]+$");
-
 	public PostFixer() {}
 
 	public static List<Terms> convert(String inExpr) throws IllegalArgumentException {
@@ -12,22 +10,15 @@ public class PostFixer {
 
 		while (true) {
 			List<Terms> tmpResult = helper.getTerms();
-			inExpr = helper.step();
-
 			if (!tmpResult.isEmpty()) result.addAll(tmpResult);
 
-			if (isEndConv(inExpr)) {
-				if (helper.isDone()) break;
+			if (helper.isExprEnd()) {
+				if (helper.isDone()) return result;
 				else throw new IllegalArgumentException();
+			} else if (helper.isDone()) {
+				throw new IllegalArgumentException();
 			}
-			else if (helper.isDone()) throw new IllegalArgumentException();
 		}
-
-		return result;
-	}
-
-	private static boolean isEndConv(String inExpr) {
-		return DONE_PATTERN.matcher(inExpr).matches();
 	}
 
 	private static class EvalHelper {
@@ -39,9 +30,10 @@ public class PostFixer {
 		private static final Pattern OPER = Pattern.compile("[nd](?<repl>(?<term>[\\+\\-\\*\\/\\%])\\s*)");
 		private static final List<Pattern> PATTERNS_LIST = Arrays.asList(NUMR, LPAR, RPAR, SIGN, EXPN, OPER);
 		private static final List<String> REPL_LIST = Arrays.asList("n", "p", "d", "s", "e", "o");
+		private static final Pattern DONE_PATTERN = Pattern.compile("^[noeds]+$");
 
-		private ConvStack oprStack;
 		private String inExpr;
+		private ConvStack oprStack;
 		private Matcher currMatcher;
 		private int currType;
 
@@ -67,11 +59,11 @@ public class PostFixer {
 			throw new IllegalArgumentException();
 		}
 
-		String step() {
+		boolean isExprEnd() {
 			inExpr = replaceGroup("repl", REPL_LIST.get(currType));
 			if (currType == 2) inExpr = replaceGroup("lpar", "");
 
-			return inExpr;
+			return DONE_PATTERN.matcher(inExpr).matches();
 		}
 
 		private List<Terms> toPostfix() {
