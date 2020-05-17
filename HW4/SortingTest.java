@@ -99,15 +99,15 @@ public class SortingTest {
 	private static int[] DoInsertionSort(int[] value) {
 		// i == start of the unsorted array
 		// j == index of sorted array (from right to left)
-		for (int i = 1; i < value.length; i++) {
-			int temp = value[i];
+		int next, j; // Saving time for memory allocation
 
-			int j;
-			for (j = i-1; (j >= 0) && (value[j] >= temp); j--) {
-				// Shift to right until value[j] is larger than or equal to temp
+		for (int i = 1; i < value.length; i++) {
+			next = value[i];
+			for (j = i-1; (j >= 0) && (value[j] >= next); j--) {
+				// Shift right until value[j] is larger than or equal to next
 				value[j+1] = value[j];
 			}
-			value[j+1] = temp; // Insert temp at the right position
+			value[j+1] = next; // Insert next at the right position
 		}
 		return value;
 	}
@@ -115,14 +115,15 @@ public class SortingTest {
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoHeapSort(int[] value) {
 		int n = value.length;
+		int i; // Saving time for memory allocation
 
 		// Build heap
-		for (int i = n/2 - 1; i >= 0; i--) {
+		for (i = n/2 - 1; i >= 0; i--) {
 			percolateDown(value, i, n);
 		}
 
 		// Do heapsort
-		for (int i = n-1; i > 0; i--) {
+		for (i = n-1; i > 0; i--) {
 			swap(value, 0, i);
 			percolateDown(value, 0, i);
 		}
@@ -179,11 +180,11 @@ public class SortingTest {
 
 		// If one of the arrays is not finished, add the rest of items
 		if (i != array1.length) {
-			for (int k=i; k<array1.length; k++) {
+			for (int k = i; k < array1.length; k++) {
 				mergedArray[k + j] = array1[k];
 			}
 		} else if (j != array2.length) {
-			for (int k=j; k<array2.length; k++) {
+			for (int k = j; k < array2.length; k++) {
 				mergedArray[i + k] = array2[k];
 			}
 		}
@@ -192,8 +193,6 @@ public class SortingTest {
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-	private static int count = 0;
-
 	private static int[] DoQuickSort(int[] value) {
 		partition(value, 0, value.length);
 
@@ -201,10 +200,6 @@ public class SortingTest {
 	}
 
 	private static void partition(int[] array, int start, int end) {
-		if (end - start <= 1) {
-			return;
-		}
-
 		// Select pivot based on index
 		int pivotItem = array[(end + start) / 2];
 
@@ -214,7 +209,7 @@ public class SortingTest {
 		int lp = start;
 		int mp = start;
 
-		for (int i=start; i<end; i++) {
+		for (int i = start; i < end; i++) {
 			// Do nothing when array[i] > pivotItem
 			if (array[i] == pivotItem) {
 				// If same to pivot, move to the right place
@@ -227,48 +222,65 @@ public class SortingTest {
 			}
 		}
 
-		// Recursive call
-		partition(array, start, lp);
-		partition(array, mp, end);
+		// Recursive call (with base case)
+		if (lp - start > 1) partition(array, start, lp);
+		if (end - mp > 1) partition(array, mp, end);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	// For radix sort
-	private static final int MAX_INT_LEN = 10;
-	private static final int DIGITS_LEN = 19; // -9 ~ 0 ~ 9
+	private static final int DIGITS_TYPE = 19; // -9 ~ 0 ~ 9
 
 	private static int[] DoRadixSort(int[] value) {
-		int exp = 1;
+		// Saving time for memory allocation
+		int digit, j, exp=1;
+		int[] counts = new int[DIGITS_TYPE];
 
-		for (int i=0; i<MAX_INT_LEN; i++) {
-			ArrayList<ArrayList<Integer>> sorted = new ArrayList<>();
+		// |Integer.MIN_VALUE| > |Integer.MAX_VALUE|
+		int min = value[0] < 0 ? value[0] : -value[0];
+		for (int i = 1; i<value.length; i++) {
+			int minus = value[i] < 0  ? value[i] : -value[i];
+			if (min > minus) {
+				min = minus;
+			}
+		}
+		min *= -1;
+		int maxLen = Integer.toString(min).length();
 
-			for (int j=0; j<DIGITS_LEN; j++) {
-				sorted.add(new ArrayList<>());
+		for (int i = 0; i < maxLen; i++) {
+			for (j = 0; j < DIGITS_TYPE; j++) {
+				counts[j] = 0;
 			}
 
-			exp *= 10;
 			for (int num: value) {
-				// Add based on digits; ArrayList.get() method is an O(1) operation.
-				sorted.get((num % exp) / (exp / 10) + 9).add(num);
+				// Add based on digits
+				digit = (num / exp) % 10 + 9;
+				counts[digit]++;
 			}
 
-			// Add back to the original array
-			int j = 0;
-			for (ArrayList<Integer> digitList: sorted) {
-				for (int num: digitList) {
-					value[j++] = num;
-				}
+			for (j = 1; j < DIGITS_TYPE; j++) {
+				counts[j] += counts[j-1];
 			}
+
+			// Fill back to the original array
+			int[] sorted = new int[value.length];
+			for (j = value.length - 1; j >= 0; j--) {
+				digit = (value[j] / exp) % 10 + 9;
+				sorted[--counts[digit]] = value[j];
+			}
+			value = sorted;
+			exp *= 10;
 		}
 
 		return value;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
+	private static int temp; // To save time for memory allocation
+
 	// Small utility for convenience
 	private static void swap(int[] array, int i, int j) {
-		int temp = array[i];
+		temp = array[i];
 		array[i] = array[j];
 		array[j] = temp;
 	}
