@@ -37,12 +37,12 @@ public class Node<T> implements NodeInterface<T> {
     }
 
     @Override
-    public Node<T> getPrev() {
+    public final Node<T> getPrev() {
         return this.prev;
     }
     
     @Override
-    public Node<T> getNext() {
+    public final Node<T> getNext() {
         return this.next;
     }
     
