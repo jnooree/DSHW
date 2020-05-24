@@ -1,21 +1,21 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class LinkedList<T> implements ListInterface<T> {
+public class MyLinkedList<T> implements MyList<T> {
 	ListNode<T> head; // dummy head
 
-    public LinkedList() {
-    	head = new ListNode<>();
-    }
+	public MyLinkedList() {
+		head = new ListNode<>();
+	}
 
-    public LinkedList(T firstItem) {
-    	this();
-    	add(firstItem);
-    }
+	public MyLinkedList(T firstItem) {
+		this();
+		add(firstItem);
+	}
 
-    public final Iterator<T> iterator() {
-    	return new LinkedListIterator<T>(this);
-    }
+	public final Iterator<T> iterator() {
+		return new MyLinkedListIterator<T>(this);
+	}
 
 	@Override
 	public void add(T item) {
@@ -44,6 +44,8 @@ public class LinkedList<T> implements ListInterface<T> {
 
 	@Override
 	public String toString() {
+		if (this.isEmpty()) return "[]";
+
 		String result = "[";
 		for (T item: this) {
 			result += item.toString() + ", ";
@@ -52,12 +54,12 @@ public class LinkedList<T> implements ListInterface<T> {
 	}
 }
 
-class LinkedListIterator<T> implements Iterator<T> {
-	private LinkedList<T> list;
+class MyLinkedListIterator<T> implements Iterator<T> {
+	private MyLinkedList<T> list;
 	private ListNode<T> curr;
 	private ListNode<T> prev;
 
-	public LinkedListIterator(LinkedList<T> list) {
+	public MyLinkedListIterator(MyLinkedList<T> list) {
 		this.list = list;
 		this.curr = list.head;
 		this.prev = null;

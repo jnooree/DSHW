@@ -1,7 +1,7 @@
 import java.util.List;
 import java.util.ArrayList;
 
-public class AVLTree<T extends Comparable<T>> implements BSTInterface<T> {
+public class AVLTree<T extends Comparable<T>> implements AVLTreeInterface<T> {
 	private AVLTreeNode<T> root;
 
 	public AVLTree() {
@@ -16,11 +16,6 @@ public class AVLTree<T extends Comparable<T>> implements BSTInterface<T> {
 	@Override
 	public boolean isEmpty() {
 		return root == null;
-	}
-
-	@Override
-	public AVLTreeNode<T> root() {
-		return root;
 	}
 
 	@Override
@@ -70,11 +65,11 @@ public class AVLTree<T extends Comparable<T>> implements BSTInterface<T> {
 	}
 
 	@Override
-	public ListInterface<T> search(T key) {
+	public MyList<T> search(T key) {
 		return searchItem(root, key);
 	}
 
-	private ListInterface<T> searchItem(AVLTreeNode<T> root, T key) {
+	private MyList<T> searchItem(AVLTreeNode<T> root, T key) {
 		if (root == null) {
 			return null;
 		} else {
@@ -89,7 +84,7 @@ public class AVLTree<T extends Comparable<T>> implements BSTInterface<T> {
 	}
 
 	@Override
-	public List<T> getItems() {
+	public List<T> getAll() {
 		return preorder(root);
 	}
 
@@ -107,14 +102,14 @@ public class AVLTree<T extends Comparable<T>> implements BSTInterface<T> {
 }
 
 class AVLTreeNode<T> {
-	private LinkedList<T> item;
+	private MyList<T> item;
 	private AVLTreeNode<T> lChild;
 	private AVLTreeNode<T> rChild;
 	private int lHeight;
 	private int rHeight;
 
 	public AVLTreeNode() {
-		item = new LinkedList<T>();
+		item = new MyLinkedList<T>();
 		lChild = null;
 		rChild = null;
 		lHeight = 0;
@@ -122,14 +117,14 @@ class AVLTreeNode<T> {
 	}
 
 	public AVLTreeNode(T firstItem) {
-		item = new LinkedList<T>(firstItem);
+		item = new MyLinkedList<T>(firstItem);
 		lChild = null;
 		rChild = null;
 		lHeight = 0;
 		rHeight = 0;
 	}
 
-	public LinkedList<T> getItem() {
+	public MyList<T> getItem() {
 		return item;
 	}
 

@@ -5,12 +5,12 @@ import java.io.UnsupportedEncodingException;
 
 public class HashTable<T extends Comparable<T>> implements HashTableInterface<T> {
 	private static final int TABLE_SIZE = 100;
-	private ArrayList<AVLTree<T>> table;
+	private ArrayList<AVLTreeInterface<T>> table;
 
 	public HashTable() {
 		table = new ArrayList<>(TABLE_SIZE);
 
-		for (int i=0; i<TABLE_SIZE; i++)
+		for (int i = 0; i < TABLE_SIZE; i++)
 			table.add(new AVLTree<T>());
 	}
 
@@ -20,23 +20,23 @@ public class HashTable<T extends Comparable<T>> implements HashTableInterface<T>
 	}
 
 	@Override
-	public ListInterface<T> search(T key) throws UnsupportedEncodingException {
+	public MyList<T> search(T key) throws UnsupportedEncodingException {
 		return table.get(hash(key)).search(key);
 	}
 
 	@Override
 	public List<T> getItems(int hash) {
-		return table.get(hash).getItems();
+		return table.get(hash).getAll();
 	}
 
 	@Override
 	public void clear() {
-		for (BSTInterface<T> hashItem: table) {
+		for (AVLTreeInterface<T> hashItem: table) {
 			hashItem.clear();
 		}
 	}
 
-	public final int hash(T key) throws UnsupportedEncodingException {
+	public static final <T> int hash(T key) throws UnsupportedEncodingException {
 		int hashCode = 0;
 		for (byte c: key.toString().getBytes("US-ASCII")) {
 			hashCode += (int) c;

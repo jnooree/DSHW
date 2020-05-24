@@ -24,19 +24,16 @@ public abstract class ConsoleCommand {
 		ConsoleCommand command;
 
 		if (input.startsWith("<")) {
-			input = input.replaceFirst("\\< ", "");
 			command = new InputCmd();
 		} else if (input.startsWith("@")) {
-			input = input.replaceFirst("\\@ ", "");
 			command = new PrintCmd();
 		} else if (input.startsWith("?")) {
-			input = input.replaceFirst("\\? ", "");
 			command = new SearchCmd();
 		} else {
 			throw new CommandParseException(input);
 		}
 
-		command.parseArguments(input);
+		command.parseArguments(input.substring(2));
 		return command;
 	}
 
@@ -79,7 +76,8 @@ class InputCmd extends ConsoleCommand {
 			String input = inputList.get(i);
 
 			for (int j = 0; j <= (input.length() - SUBSTR_LEN); j++) {
-				db.insert(new MatchDBItem(input.substring(j, j+SUBSTR_LEN), new int[]{i+1, j+1}));
+				db.insert(new MatchDBItem(input.substring(j, j+SUBSTR_LEN), 
+										  new int[] {i+1, j+1}));
 			}
 		}
 	}
@@ -132,7 +130,7 @@ class SearchCmd extends ConsoleCommand {
 
 	@Override
 	public void apply(MatchDB db) throws Exception {
-		List<ListInterface<MatchDBItem>> matches = new ArrayList<>();
+		List<MyList<MatchDBItem>> matches = new ArrayList<>();
 
 		for (int i = SUBSTR_LEN; i < (tgtLen + SUBSTR_LEN); i += SUBSTR_LEN) {
 			int endIdx = i < tgtLen ? i : tgtLen;
@@ -148,10 +146,10 @@ class SearchCmd extends ConsoleCommand {
 		}
 		
 		List<int[]> result = getFullMatch(matches);
-		System.out.println(matchToString(result));
+		System.out.println(idxToString(result));
 	}
 
-	private List<int[]> getFullMatch(List<ListInterface<MatchDBItem>> matches) {
+	private List<int[]> getFullMatch(List<MyList<MatchDBItem>> matches) {
 		List<int[]> result = new ArrayList<>();
 		for (MatchDBItem item: matches.get(0))
 			result.add(item.getIdx());
@@ -160,10 +158,11 @@ class SearchCmd extends ConsoleCommand {
 			Iterator<int[]> resultIter = result.iterator();
 			
 			int diff;
-			if ((i + 1) * SUBSTR_LEN <= tgtLen)
+			if ((i + 1) * SUBSTR_LEN <= tgtLen) {
 				diff = i * SUBSTR_LEN;
-			else
+			} else {
 				diff = (i - 1) * SUBSTR_LEN + tgtLen % SUBSTR_LEN;
+			}
 
 			while (resultIter.hasNext()) {
 				int[] j = resultIter.next();
@@ -181,42 +180,18 @@ class SearchCmd extends ConsoleCommand {
 		return result;
 	}
 
-	private static String matchToString(List<int[]> match) {
-		if (match.isEmpty()) return NO_MATCH_MSG;
+	private static String idxToString(List<int[]> indices) {
+		if (indices.isEmpty()) return NO_MATCH_MSG;
 
 		List<String> result = new ArrayList<>();
-		for (int[] idx: match) {
+		for (int[] i: indices) {
 			result.add("(" +
-                        Arrays.stream(idx)
-                            .mapToObj(Integer::toString)
-                            .collect(Collectors.joining(", ")) +
-                        ")");
+					   Arrays.stream(i)
+							 .mapToObj(Integer::toString)
+							 .collect(Collectors.joining(", ")) +
+					   ")");
 		}
-        return String.join(" ", result);
-	}
-}
-
-/******************************************************************************/
-class ConsoleWriter {
-	private static BufferedWriter consoleWriter = new BufferedWriter(new OutputStreamWriter(System.out));
-
-	public ConsoleWriter() {}
-
-	public static void writef(String s, Object... arg) throws Exception {
-		consoleWriter.write(String.format(s, arg));
-	}
-
-	public static void writeln(String s, Object... arg) throws Exception {
-		ConsoleWriter.writef(s + "\n", arg);
-	}
-
-	public static void flush() throws Exception {
-		consoleWriter.flush();
-	}
-
-	public static void println(String s, Object... arg) throws Exception {
-		ConsoleWriter.writeln(s, arg);
-		ConsoleWriter.flush();
+		return String.join(" ", result);
 	}
 }
 
