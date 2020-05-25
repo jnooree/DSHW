@@ -11,5 +11,7 @@ public interface ListNodeInterface<T> {
 
 	public ListNode<T> getNext();
 
+	public void remove();
+
 	public boolean isEmpty();
 }

@@ -18,7 +18,6 @@ public abstract class ConsoleCommand {
 	 * 
 	 * 만약 어떤 명령이 별도의 해석 규칙이 필요한 경우 이 메소드를 직접 오버라이드하면 된다. 
 	 */
-	public static final int SUBSTR_LEN = 6;
 
 	public static ConsoleCommand parse(String input) throws CommandParseException {
 		ConsoleCommand command;
@@ -61,8 +60,7 @@ class InputCmd extends ConsoleCommand {
 			BufferedReader br = Files.newBufferedReader(Paths.get(inputFile));
 
 			String line;
-			while ((line = br.readLine()) != null)
-				inputList.add(line);
+			while ((line = br.readLine()) != null) inputList.add(line);
 		} catch (Exception e) {
 			throw new CommandParseException("InputCmd", inputFile, e.toString());
 		}
@@ -71,15 +69,7 @@ class InputCmd extends ConsoleCommand {
 	@Override
 	public void apply(MatchDB db) throws Exception {
 		db.reset();
-
-		for (int i = 0; i < inputList.size(); i++) {
-			String input = inputList.get(i);
-
-			for (int j = 0; j <= (input.length() - SUBSTR_LEN); j++) {
-				db.insert(new MatchDBItem(input.substring(j, j+SUBSTR_LEN), 
-										  new int[] {i+1, j+1}));
-			}
-		}
+		db.insert(inputList);
 	}
 }
 
@@ -101,7 +91,7 @@ class PrintCmd extends ConsoleCommand {
 
 	@Override
 	public void apply(MatchDB db) throws Exception {
-		List<MatchDBItem> result = db.print(hash);
+		List<MatchDBItem> result = db.getItems(hash);
 
 		if (result.isEmpty()) {
 			System.out.println(EMPTY_MESSAGE);
@@ -120,78 +110,31 @@ class PrintCmd extends ConsoleCommand {
 class SearchCmd extends ConsoleCommand {
 	private static final String NO_MATCH_MSG = "(0, 0)";
 	private String target;
-	private int tgtLen;
 
 	@Override
 	protected void parseArguments(String target) {
 		this.target = target;
-		tgtLen = target.length();
 	}
 
 	@Override
 	public void apply(MatchDB db) throws Exception {
-		List<MyList<MatchDBItem>> matches = new ArrayList<>();
-
-		for (int i = SUBSTR_LEN; i < (tgtLen + SUBSTR_LEN); i += SUBSTR_LEN) {
-			int endIdx = i < tgtLen ? i : tgtLen;
-			int startIdx = endIdx - SUBSTR_LEN;
-			
-			String key = target.substring(startIdx, endIdx);
-			matches.add(db.search(key));
-		}
-
-		if (matches.get(0).isEmpty()) {
-			System.out.println(NO_MATCH_MSG);
-			return;
-		}
-		
-		List<int[]> result = getFullMatch(matches);
+		MyList<MatchDBItem> result = db.search(target);
 		System.out.println(idxToString(result));
 	}
 
-	private List<int[]> getFullMatch(List<MyList<MatchDBItem>> matches) {
-		List<int[]> result = new ArrayList<>();
-		for (MatchDBItem item: matches.get(0))
-			result.add(item.getIdx());
+	private static String idxToString(MyList<MatchDBItem> result) {
+		if (result.isEmpty()) return NO_MATCH_MSG;
 
-		for (int i = 1; i < matches.size(); i++) {
-			Iterator<int[]> resultIter = result.iterator();
-			
-			int diff;
-			if ((i + 1) * SUBSTR_LEN <= tgtLen) {
-				diff = i * SUBSTR_LEN;
-			} else {
-				diff = (i - 1) * SUBSTR_LEN + tgtLen % SUBSTR_LEN;
-			}
-
-			while (resultIter.hasNext()) {
-				int[] j = resultIter.next();
-				boolean remove = true;
-
-				for (MatchDBItem k: matches.get(i)) {
-					if (j[0] == k.getIdx()[0] && j[1] == (k.getIdx()[1] - diff))
-						remove = false;
-				}
-
-				if (remove) resultIter.remove();
-			}
+		List<String> idxString = new ArrayList<>();
+		for (MatchDBItem item: result) {
+			int[] idx = item.getIdx();
+			idxString.add("(" +
+						  Arrays.stream(idx)
+								.mapToObj(Integer::toString)
+								.collect(Collectors.joining(", ")) +
+						  ")");
 		}
-
-		return result;
-	}
-
-	private static String idxToString(List<int[]> indices) {
-		if (indices.isEmpty()) return NO_MATCH_MSG;
-
-		List<String> result = new ArrayList<>();
-		for (int[] i: indices) {
-			result.add("(" +
-					   Arrays.stream(i)
-							 .mapToObj(Integer::toString)
-							 .collect(Collectors.joining(", ")) +
-					   ")");
-		}
-		return String.join(" ", result);
+		return String.join(" ", idxString);
 	}
 }
 

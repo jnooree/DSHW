@@ -46,6 +46,12 @@ public class ListNode<T> implements ListNodeInterface<T> {
 	}
 
 	@Override
+    public final void remove() {
+        this.getPrev().setNext(this.getNext());
+        this.getNext().setPrev(this.getPrev());
+    }
+
+	@Override
 	public final boolean isEmpty() {
 		return this.item == null;
 	}

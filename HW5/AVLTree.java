@@ -26,23 +26,26 @@ public class AVLTree<T extends Comparable<T>> implements AVLTreeInterface<T> {
 	private AVLTreeNode<T> insertItem(AVLTreeNode<T> root, T item) {
 		if (root == null) {
 			return new AVLTreeNode<>(item);
-		} else if (root.getItem().first().equals(item)) {
-			root.getItem().add(item);
-			return root;
-		} else if (root.getItem().first().compareTo(item) > 0) {
+		} else if (root.getItem().firstItem().equals(item)) {
+			root.getItem().add(item); //동일한 item이 존재할 경우 linkedlist에 삽입
+		} else if (root.getItem().firstItem().compareTo(item) > 0) {
 			root.setLeft(insertItem(root.getLeft(), item));
+
+			//왼쪽에 삽입했으므로 왼쪽이 더 긴 경우만 존재
+			if (root.getBalance() > 1) {
+				if (root.getLeft().getBalance() < 0)
+					root.setLeft(rotateLeft(root.getLeft())); //Double rotation의 경우
+				root = rotateRight(root);
+			}
 		} else {
 			root.setRight(insertItem(root.getRight(), item));
-		}
 
-		if (root.getBalance() < -1) {
-			if (root.getRight().getBalance() > 0)
-				root.setRight(rotateRight(root.getRight()));
-			root = rotateLeft(root);
-		} else if (root.getBalance() > 1) {
-			if (root.getLeft().getBalance() < 0)
-				root.setLeft(rotateLeft(root.getLeft()));
-			root = rotateRight(root);
+			//오른쪽에 삽입했으므로 오른쪽이 더 긴 경우만 존재
+			if (root.getBalance() < -1) {
+				if (root.getRight().getBalance() > 0)
+					root.setRight(rotateRight(root.getRight())); //Double rotation의 경우
+				root = rotateLeft(root);
+			}
 		}
 
 		return root;
@@ -71,11 +74,11 @@ public class AVLTree<T extends Comparable<T>> implements AVLTreeInterface<T> {
 
 	private MyList<T> searchItem(AVLTreeNode<T> root, T key) {
 		if (root == null) {
-			return null;
+			return new MyLinkedList<>();
 		} else {
-			if (root.getItem().first().equals(key)) {
+			if (root.getItem().firstItem().equals(key)) {
 				return root.getItem();
-			} else if (root.getItem().first().compareTo(key) > 0) {
+			} else if (root.getItem().firstItem().compareTo(key) > 0) {
 				return searchItem(root.getLeft(), key);
 			} else {
 				return searchItem(root.getRight(), key);
@@ -92,7 +95,7 @@ public class AVLTree<T extends Comparable<T>> implements AVLTreeInterface<T> {
 		List<T> result = new ArrayList<>();
 		
 		if (root != null) {
-			result.add(root.getItem().first());
+			result.add(root.getItem().firstItem()); //첫번째 item만 있어도 출력할 수 있으므로
 			result.addAll(preorder(root.getLeft()));
 			result.addAll(preorder(root.getRight()));
 		}
@@ -100,6 +103,7 @@ public class AVLTree<T extends Comparable<T>> implements AVLTreeInterface<T> {
 		return result;
 	}
 }
+
 
 class AVLTreeNode<T> {
 	private MyList<T> item;
@@ -109,7 +113,7 @@ class AVLTreeNode<T> {
 	private int rHeight;
 
 	public AVLTreeNode() {
-		item = new MyLinkedList<T>();
+		item = new MyLinkedList<>();
 		lChild = null;
 		rChild = null;
 		lHeight = 0;
@@ -117,7 +121,7 @@ class AVLTreeNode<T> {
 	}
 
 	public AVLTreeNode(T firstItem) {
-		item = new MyLinkedList<T>(firstItem);
+		item = new MyLinkedList<>(firstItem);
 		lChild = null;
 		rChild = null;
 		lHeight = 0;

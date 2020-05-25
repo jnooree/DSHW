@@ -1,9 +1,9 @@
 public interface MyList<T> extends Iterable<T> {
+	public boolean isEmpty();
+
 	public void add(T item);
 
-	public T first();
+	public T firstItem();
 
-	public T last();
-
-	public boolean isEmpty();
+	public T lastItem();
 }

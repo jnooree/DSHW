@@ -13,8 +13,14 @@ public class MyLinkedList<T> implements MyList<T> {
 		add(firstItem);
 	}
 
+	@Override
 	public final Iterator<T> iterator() {
 		return new MyLinkedListIterator<T>(this);
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return head.getNext() == head;
 	}
 
 	@Override
@@ -28,18 +34,13 @@ public class MyLinkedList<T> implements MyList<T> {
 	}
 
 	@Override
-	public T first() {
+	public T firstItem() {
 		return head.getNext().getItem();
 	}
 
 	@Override
-	public T last() {
+	public T lastItem() {
 		return head.getPrev().getItem();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return head.getNext() == head;
 	}
 
 	@Override
@@ -79,5 +80,16 @@ class MyLinkedListIterator<T> implements Iterator<T> {
 		curr = curr.getNext();
 
 		return curr.getItem();
+	}
+
+	@Override
+	public void remove() {
+		if (prev == null)
+			throw new IllegalStateException("next() should be called first");
+		if (curr == null)
+			throw new NoSuchElementException();
+		curr.remove();
+		curr = prev;
+		prev = null;
 	}
 }

@@ -15,6 +15,13 @@ public class HashTable<T extends Comparable<T>> implements HashTableInterface<T>
 	}
 
 	@Override
+	public void clear() {
+		for (AVLTreeInterface<T> hashItem: table) {
+			hashItem.clear();
+		}
+	}
+
+	@Override
 	public void insert(T item) throws UnsupportedEncodingException {
 		table.get(hash(item)).insert(item);
 	}
@@ -27,13 +34,6 @@ public class HashTable<T extends Comparable<T>> implements HashTableInterface<T>
 	@Override
 	public List<T> getItems(int hash) {
 		return table.get(hash).getAll();
-	}
-
-	@Override
-	public void clear() {
-		for (AVLTreeInterface<T> hashItem: table) {
-			hashItem.clear();
-		}
 	}
 
 	public static final <T> int hash(T key) throws UnsupportedEncodingException {
