@@ -127,9 +127,8 @@ class SearchCmd extends ConsoleCommand {
 
 		List<String> idxString = new ArrayList<>();
 		for (MatchDBItem item: result) {
-			int[] idx = item.getIdx();
 			idxString.add("(" +
-						  Arrays.stream(idx)
+						  Arrays.stream(item.getIdx())
 								.mapToObj(Integer::toString)
 								.collect(Collectors.joining(", ")) +
 						  ")");
